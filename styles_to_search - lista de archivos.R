@@ -1,9 +1,5 @@
 #Busqueda, copiar por lista con nombre de archivo, interactivo para seleccionar archivo y carpeta
 
-#install.packages("filesstrings")
-#install.packages("readxl")
-
-library(filesstrings)
 library(readxl)
 
 #Cargar Archivo con material y full path de archivo
