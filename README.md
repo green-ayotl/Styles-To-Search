@@ -6,7 +6,7 @@
         - Columna 2: Full path del archivo local a copiar
         
 - Styles para Charts
-  - Edición en lote imagenes, para caratulas de formatos "Proforma"
+  - Edición en lote imagenes, para caratulas de formatos: Sell Through, "Proforma", Lista de Productos para clientes
     - Imagen: Recortada, comprimida
      
 ### To-DO

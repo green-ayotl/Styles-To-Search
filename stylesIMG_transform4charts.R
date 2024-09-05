@@ -1,3 +1,6 @@
+## Obtener imagenes para utilizar como siluetas para uso en reportes de excel
+  ## A partir de un documento con
+
 # Materiales para buscar en signal
   # - Imagen frontal, terminación [RZ]
   # -Unir Nombre Color (ingles) con clave Color [Material]
