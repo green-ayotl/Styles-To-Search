@@ -1,33 +1,41 @@
-## Obtener imagenes para utilizar como siluetas para uso en reportes de excel
-  ## A partir de un documento con
+# Transformar imagenes para utilizar como siluetas, para uso en reportes de excel
+  ## A partir de un documento de excel
+  ## Primera Columna: Codigo de material, así sera renombrado el archivo
+    ## Nombre de la columna: Material
+        ## Solo nombre de archivo, sin extension
+    ## Segunda columna: Full Path de los archivos que se transformaran
+      ## Nombre de la columna: Archivo
+        ## Dirección local de donde se encuentran los archivos
 
-# Materiales para buscar en signal
-  # - Imagen frontal, terminación [RZ]
-  # -Unir Nombre Color (ingles) con clave Color [Material]
-#Transformar para archivo Charts
- # - Trim espacio en blanco
- # - Comprimir 75 ppi para compartir
-# Renombrar Archivos
- # - Colocar [Material] como nombre del archivo
+  ## IMPORTANTE
+      ### La lista de excel, solo debe contener la pestaña con la información que se menciona
+      ### No debe tener valores repetidos
+        ### Si necesitas la cara de varios materiales, agrega un sufijo para identificarlos
+        ### Si se repite la ruta de los archivos, se reescribira y se perdera imagenes anteriores
+      ### Por el momento solo se aceptan archivos [.jpg]
+
+### Util: Cuando los archivos se encuentran en distintas carpetas
+### Se se intemrrumpe el codigo, al seleccionar la misma lista de excel y carpeta destino, se continuara el proceso desde los archivos ya existentes
+### Informa del proceso terminado en terminal
 
 library(magick)
 library(readxl)
-#library(filesstrings)
 
-styles_to_search_IMGCharts <- read_xlsx( path = "C:/Users/ecastellanos.ext/OneDrive - Axo/Documentos/R Proyectos/SearchStyles_CopyFiles/Styles To Search - General.xlsx", sheet = "imgST_f")
+readline(
+  prompt = "Selecciona la lista en excel, presiona [Enter]"
+)
+lista_excel <- file.choose()
 
-#LEGACY #Signal <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Signal/SPECIAL MARKET/2024/FALL 24/ECOM"
+readline(
+  prompt = "Selecciona la carpeta donde se guardaran las imagenes, presiona [Enter]"
+)
+carpeta_destino <- gsub("\\\\","/",choose.dir())
 
-#LEGACY #Signal <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Signal/GUESS MAINLINE ECOM IMAGES/2024/243 - FALL 2024/Front"
-
-carpeta_destino <- gsub("////","/",
-                        readline(prompt = "Introduce la ruta donde se guardaran los archivos: "))
-
-#LEGACY #Signal_files <- list.files( path = Signal, full.names = TRUE)
-
+styles_to_search_IMGCharts <- read_xlsx(lista_excel)
 
 # Transformar archivo IMG
-#carpeta_destino_files <- list.files( path = carpeta_destino, full.names = TRUE)
+# Obtener archivos de carpeta destino para continuar donde proceso fue detenido
+
 minis <- list.files( path = carpeta_destino, full.names = FALSE)
 
 counting <- 1
@@ -46,18 +54,10 @@ for (archivo in styles_to_search_IMGCharts$Archivo) {
   IMG <- image_read( path = archivo)
   IMG <- image_trim(IMG)
   IMG <- image_scale(IMG, 200)
-  IMG <- image_write(IMG, path = paste0(carpeta_destino,"/",material))
+  IMG <- image_write(IMG, path = paste0(carpeta_destino,"/",material,".jpg"))
   rm(IMG)
   
   print(paste0(material,"; ",counting," de ",total))
   }
   counting <- counting + 1
 }
-
-# For in styles_to_search$Archivo
-  # 1 - Buscar Material por nombre de archivo
-  # 2 - Cargar como imagen
-    # 2.1 - Trim
-    # 2.2 - Transformar, cambiar tamaño [image_resize(x, "tamaño")] y calidad [image_write(x, quality)]
-    # image_write(image,path = NULL,format = NULL,quality = NULL,depth = NULL,density = NULL,comment = NULL,flatten = FALSE,defines = NULL,compression = NULL)
-    # Image_wrte(path = paste0(carpeta_destino,filter(styleIMG_forCharts$Archivo >> MAterial)))
