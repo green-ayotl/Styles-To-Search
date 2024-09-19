@@ -1,20 +1,17 @@
-# PLANTILLA MERCADO LIBRE
+# PLANTILLA Cliente Sanborns
 
-#Esquema de función
-  #Pasos -> Información -> Confirmación para continuar hasta terminar
-
-# - PASOS -
+# - Funcionamiento -
 
 # - Importación de Materiales con color y su correspondiente UPC
-# - Compilación de imágenes y copia de imágenes
-  # Este código permite buscar todos los archivos (imágenes) relacionados con cierto material (4 lados)
-  #Copiarlos a una nueva carpeta, la carpeta de nombre: código UPC del material
-# TO-DO
-  # Important: Buscar archivos de materiales con su codigo de vista
-  # - Renombre de archivos
-  #User input: archivo, carpeta origen, carpeta destino
-  # Tabla con informacion de archivos en directorios, incluyen todas las caras buscadas
-# = To consider = - Bulk image converter
+# - Busqueda de imagenes, objeto magick, escritura correspondiente de acuerdo a su UPC
+  # Este script permite buscar todos los archivos (imágenes) relacionados con cierto material (4 lados minimo)
+  #Bulk Copy & Bulk Rename & Bulk Transform a una nueva carpeta
+
+# Requerimientos Cliente Sanborns
+  # 1200 x 1200 px  
+  # 72 dpis  
+  # Renombradas con su UPC, UPC_2, UPC_3...  
+  # UPC : 3/4; UPC_2 : Frontal; UPC_3 : Back ; UPC_4 : Interior/Superior
 
 library(filesstrings)
 library(readxl)
@@ -26,19 +23,30 @@ library(magick)
 # - Archivo lista de estilos -
   # Encabezados (columnas): [Material] y [Codigo UPC]: Datos únicos, evitar repetición de Materiales y UPC
   #"UN SOLO UPC POR MATERIAL"
-styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "ML")
+styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Sanborns")
 
 #Excel: Archivos Signal Factory
 
-materiales_signal <- read_excel( path = "C:/Users/ecastellanos.ext/OneDrive - Axo/Documentos/Materiales Signal.xlsx", 
+# Lista de Materiales -> To-Do: In project with R
+materiales_signal <- read_excel( path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Materiales Signal.xlsx", 
                                 sheet = "Special Market (Factory)")
 
 #Display info: wait and continue
+
 print(paste0(
   "Se encontro un total de ",
-  length(styles_to_search$`Codigo UPC`),
+  length(unique(styles_to_search$Material)),
+  " materiales con correspondiente: ",
+  length(unique(styles_to_search$UPC)),
   " codigos UPC."
 ))
+if (length(unique(styles_to_search$Material)) == length(unique(styles_to_search$UPC))) {
+  print("Materiales y codigos UPC con sentido")
+} else {
+  print("Checar lista de materiales importada, no dan sentido, materiales o codigos UPC repetidos")
+  mat_error <- readline( prompt = "Desea continuar [Enter] o cancelar [N]")
+  if ( mat_error == "N") {stop()} else {next}
+}
 readline(prompt = "Presiona [Enter] para continuar")
 
 #Path debe tener "/", reemplazar "\"
@@ -48,42 +56,31 @@ readline(prompt = "Presiona [Enter] para continuar")
 carpeta_final <- gsub("\\\\","/",
                       readline(prompt = "Introduce la ruta donde se guardaran los archivos: "))
 
-#carpeta_destino <-paste0(carpeta_final,filtro_estilos)
+#Parametros Cliente
+tamaño <- "1200x1200"
+dpi <- 72
+extension <- ".jpg"
 
-# Lista de archivos donde buscar las imágenes
-#archivos <- list.files( path = carpeta_origen, full.names = TRUE, recursive = TRUE)
+#Custom Funtion
+material_tranform <- function(fullname, tamaño, dpi, destino, upc_name, consecutivo, extension) {
+  IMG <- image_read( path = fullname) |> image_trim() |> image_scale(tamaño)
+  image_write(IMG, path = paste0(destino,"/",extension), density = dpi)
+  print(paste0(destino,"/",upc_name,"_",consecutivo,extension))
+}
 
-#foldertosearch <- str_extract(carpeta_origen,"(?<=/)[^/]+$")
-#extensiones <- str_extract(archivos, "\\.[^.]+$")
-
-#Display info: wait and continue
-#print(paste0(
-#  "En la carpeta: ", foldertosearch,
-#  ", se encuentran : ", length(archivos)," archivos."
-#))
-#print(
-#  "Tabla de extensiones:")
-#print(table(extensiones))
-#readline(prompt = "Presiona [Enter] para continuar")
-# Testing: #styles <- styles_to_search$Material[1]
-
-#Busqueda de materiales, creacion de carpetas UPCs y copiar a los mismos
+#Busqueda de materiales, transformar, escribir y renombrar de acuerdo a UPC correspondiente
 for (styles in styles_to_search$Material) {
   #Filtrar Materiales de búsqueda en Materiales Signal
   info_mat <- materiales_signal %>% filter(materiales_signal$Material %in% styles)
-  
-  # Legacy #Seleccionar imágenes por nombre de material coincidente#archivos_seleccionados <- archivos[str_detect(archivos, UPC)]
-  
+  caras <- info_mat %>% select(Cara, `Full Name`)
   #Seleccionar Codigo UPC del bucle
-  upc_single <- styles_to_search$`Codigo UPC`[which(styles_to_search$Material == styles)]
-  upc_folder <- paste0(carpeta_final,"/", upc_single)
-  
-  #Crear directorio con el UPC donde quedara las imágenes
-  dir.create(upc_folder, showWarnings = FALSE)
-  print(paste0("Carpeta creada: ", upc_single))
-  
-  #Seleccionar nuevo directorio
-  carpeta_destino <- paste0(carpeta_final,"/",upc_single)
+  upc_single <- styles_to_search$UPC[which(styles_to_search$Material == styles)]
+   for (i in 1:nrow(caras)) {
+     fila_actual <- caras[i,]
+     if (caras$Cara == "PZ") {
+       
+     }
+   }
   
   #Legacy #Copiar al nuevo directorio file.copy( from = archivos_seleccionados, to = carpeta_destino)
   
