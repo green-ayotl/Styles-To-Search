@@ -1,20 +1,24 @@
 # Simple Point, Transform, Rename
 
 library(readxl)
+library(magick)
 
-styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Amazon (2)")
+styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Sanborns (2)")
 
-tamaño <- "1600x1600"
+tamaño <- "1200x1200"
 dpi <- 72
 extension <- ".jpg"
 
 carpeta_final <- gsub("\\\\","/",
                       readline(prompt = "Introduce la ruta donde se guardaran los archivos: "))
+
+canvas <- image_blank(width = 1200, height = 1200, color = "white")
 counting <- 1
 for (i in 1:nrow(styles_to_search)) {
     full_name <- styles_to_search$`Full Name`[i]
-    IMG <- image_read( path = full_name) |> image_trim() |> image_scale(tamaño)
+    IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
+    IMG <- image_composite(canvas, IMG, gravity = "Center") #Sanborns Transform
     image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i],extension), density = dpi)
-    print(paste0(styles_to_search$Rename[i], "; conteo: ", counting))
+    print(paste0(styles_to_search$Rename[i], "; procesado: ", counting))
     counting <- counting + 1
 }

@@ -23,9 +23,18 @@ library(magick)
 # - Archivo lista de estilos -
   # Encabezados (columnas): [Material] y [Codigo UPC]: Datos únicos, evitar repetición de Materiales y UPC
   #"UN SOLO UPC POR MATERIAL"
-styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Sanborns")
+
+#Parametros Sanborns
+medidas <- "1200x1200"
+dpi <- 72
+  #Rename UPC: 
+    #UPC : 3/4
+    #UPC_2 : Frontal
+    #UPC_3 : Back
+    #UPC_4 : Interior/Superior
 
 #Excel: Archivos Signal Factory
+styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Sanborns")
 
 # Lista de Materiales -> To-Do: In project with R
 materiales_signal <- read_excel( path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Materiales Signal.xlsx", 
@@ -89,7 +98,7 @@ for (styles in styles_to_search$Material) {
     path_from <- sub('[1]*','',as.vector(info_mat[i,9])) #Ruta de imagen a editar
     IMG <- image_read( path = path_from) #Leer imagen
     IMG <- image_trim(IMG) #Quitar bordes    
-    IMG <- image_scale(IMG, "1600x1600") #Cambiar tamaño
+    IMG <- image_scale(IMG, "1200x1200") #Cambiar tamaño
     mat_renombre <- info_mat[i,"Material Rename ML"] %>% as.character()
     IMG <- image_write(IMG, path = paste0(carpeta_destino,"/",mat_renombre,".jpg"), density = 72)
     print(paste0(
