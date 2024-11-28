@@ -1,7 +1,7 @@
 # Título: Busqueda estilos en carpeta.R
 # Autor: Eduardo Castellanos Cruz
   # Contacto AXO: ecastellanos.ext@proveedoresga.com
-# Fecha: 06/10/2024
+# Fecha: 11/11/2024
 # Descripción: Herramienta para buscar materiales/estilos en un carpeta desde una lista a travéz de su nombre de archivo
 # Versión de R: 4.3.3
 
@@ -16,13 +16,13 @@ library(writexl)
 #-----
 #Parametros
 extension_imagenes <- ".jpg" #Archivos con esta extensión se buscara en la carpeta origen
-sobre_escribir <- TRUE #Si ya se encuentra el archivo en la carpeta destino, seleccionar si se sobreescribe
+sobre_escribir <- TRUE #Si ya se encuentra el archivo en la carpeta destino, seleccionar si se sobrescribe, 
 
 # ------
 # Importante #
 # La lista de materiales, debe ser un archivo de excel, el encabezado de la columna debe ser: "Material" ; (sin comillas)
   # Puede incluir otras columnas, serán ignoradas
-# Se lee la primera pestaña del documento, mejor, evitar pestañas extras
+# Se lee la primera pestaña del documento, evitar pestañas extras
 # Al finalizar, se agregara una nueva columna: "archivos_copiados": estos serán el numero de archivos copiados en este script
   # No contara los archivos existentes en la carpeta destino
 
@@ -51,8 +51,9 @@ carpeta_destino <- gsub("\\\\","/",choose.dir(default = "", caption = "Carpeta D
 
 # Lista de archivos a buscar
 
-lista_archivos <- tibble( ruta_completa = list.files( path = carpeta_busqueda, pattern = extension_imagenes, full.names = TRUE, recursive = TRUE),
-                          nombre_archivo = tools::file_path_sans_ext(list.files( path = carpeta_busqueda, pattern = extension_imagenes , full.names = FALSE)))
+lista_archivos <- tibble( ruta_completa = list.files( path = carpeta_busqueda, pattern = extension_imagenes, full.names = TRUE, recursive = TRUE))
+
+lista_archivos$nombre_archivo <- basename(lista_archivos$ruta_completa)
 # Columna para archivos encontrados
 
 estilos <- estilos %>% mutate(archivos_copiados = NA)

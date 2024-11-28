@@ -3,16 +3,16 @@
 library(readxl)
 library(magick)
 
-styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Sanborns (2)")
+styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Liverpool (2)")
 
-tamaño <- "1200x1200"
+tamaño <- "940x1215"
 dpi <- 72
 extension <- ".jpg"
 
 carpeta_final <- gsub("\\\\","/",
                       readline(prompt = "Introduce la ruta donde se guardaran los archivos: "))
 
-canvas <- image_blank(width = 1200, height = 1200, color = "white")
+canvas <- image_blank(width = 940, height = 1215, color = "white")
 counting <- 1
 for (i in 1:nrow(styles_to_search)) {
     full_name <- styles_to_search$`Full Name`[i]

@@ -23,14 +23,20 @@ library(dplyr)
 library(stringr)
 library(magick)
 
+# ------
+# Requerimientos Meli
+tamaño <- "1600x1600"
+alto <- "1600" # Canvas size
+ancho <- "1600" #Canvas size
+fuzz <- 40
+dpi <- 72
+extension <- ".jpg"
+calidad <- 75
+
 # - Archivo lista de estilos -
   # Encabezados (columnas): [Material] y [Codigo UPC]: Datos únicos, evitar repetición de Materiales y UPC
   #"UN SOLO UPC POR MATERIAL"
-styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "ML")
-
-# Lista de Materiales -> To-Do: In project with R
-materiales_signal <- read_excel( path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Materiales Signal.xlsx", 
-                                 sheet = "Special Market (Factory)")
+styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "MeLi - IMG")
 
 #Display info: wait and continue
 
@@ -38,12 +44,11 @@ print(paste0(
   "Se encontro un total de ",
   length(unique(styles_to_search$Material)),
   " materiales con correspondiente: ",
-  length(unique(styles_to_search$UPC)),
+  length(unique(styles_to_search$`Codigo UPC`)),
   " codigos UPC."
 ))
-if (length(unique(styles_to_search$Material)) == length(unique(styles_to_search$UPC))) {
+if (length(unique(styles_to_search$Material)) == length(unique(styles_to_search$`Codigo UPC`))) {
   print("Materiales y codigos UPC con sentido")
-  stop()
 } else {
     print("Checar lista de materiales importada, no dan sentido, materiales o codigos UPC repetidos")
     mat_error <- readline( prompt = "Desea continuar [Enter] o cancelar [N]")
@@ -52,41 +57,17 @@ if (length(unique(styles_to_search$Material)) == length(unique(styles_to_search$
 
 readline(prompt = "Presiona [Enter] para continuar")
 
-#Path debe tener "/", reemplazar "\"
-#carpeta_origen <- gsub("\\\\","/",
-#                       readline(prompt = "Introduce la ruta de donde se toman los archivos: "))
-
 carpeta_final <- gsub("\\\\","/",
-                      readline(prompt = "Introduce la ruta donde se guardaran los archivos: "))
+                      choose.dir(caption = "Introduce la ruta donde se guardaran los archivos: "))
 
-#carpeta_destino <-paste0(carpeta_final,filtro_estilos)
-
-# Lista de archivos donde buscar las imágenes
-#archivos <- list.files( path = carpeta_origen, full.names = TRUE, recursive = TRUE)
-
-#foldertosearch <- str_extract(carpeta_origen,"(?<=/)[^/]+$")
-#extensiones <- str_extract(archivos, "\\.[^.]+$")
-
-#Display info: wait and continue
-#print(paste0(
-#  "En la carpeta: ", foldertosearch,
-#  ", se encuentran : ", length(archivos)," archivos."
-#))
-#print(
-#  "Tabla de extensiones:")
-#print(table(extensiones))
-#readline(prompt = "Presiona [Enter] para continuar")
-# Testing: #styles <- styles_to_search$Material[1]
+canvas <- image_blank(width = ancho, height = alto, color = "white")
+counting <- 1
 
 #Busqueda de materiales, creacion de carpetas UPCs y copiar a los mismos
-for (styles in styles_to_search$Material) {
-  #Filtrar Materiales de búsqueda en Materiales Signal
-  info_mat <- materiales_signal %>% filter(materiales_signal$Material %in% styles)
-  
-  # Legacy #Seleccionar imágenes por nombre de material coincidente#archivos_seleccionados <- archivos[str_detect(archivos, UPC)]
-  
-  #Seleccionar Codigo UPC del bucle
-  upc_single <- styles_to_search$`Codigo UPC`[which(styles_to_search$Material == styles)]
+for (i in 1:nrow(styles_to_search)) {
+
+  #Seleccionar Codigo UPC
+  upc_single <- as.character(styles_to_search$`Codigo UPC`[i])
   upc_folder <- paste0(carpeta_final,"/", upc_single)
   
   #Crear directorio con el UPC donde quedara las imágenes
@@ -94,20 +75,18 @@ for (styles in styles_to_search$Material) {
   print(paste0("Carpeta creada: ", upc_single))
   
   #Seleccionar nuevo directorio
-  carpeta_destino <- paste0(carpeta_final,"/",upc_single)
+  carpeta_destino <- upc_folder #Paso repetido repetido
   
-  #Legacy #Copiar al nuevo directorio file.copy( from = archivos_seleccionados, to = carpeta_destino)
+  info_mat <- styles_to_search %>% filter(styles_to_search$`Codigo UPC` == styles_to_search$`Codigo UPC`[i])
   
   #Editar imagenes
-  for (i in 1:nrow(info_mat)){
-    path_from <- sub('[1]*','',as.vector(info_mat[i,9])) #Ruta de imagen a editar
-    IMG <- image_read( path = path_from) #Leer imagen
-    IMG <- image_trim(IMG) #Quitar bordes    
-    IMG <- image_scale(IMG, "1600x1600") #Cambiar tamaño
-    mat_renombre <- info_mat[i,"Material Rename ML"] %>% as.character()
-    IMG <- image_write(IMG, path = paste0(carpeta_destino,"/",mat_renombre,".jpg"), density = 72)
+  for (h in 1:nrow(info_mat)){
+    IMG <- image_read( path = info_mat$`Full Name`[h]) #Ruta de imagen a editar
+    IMG <- image_trim(IMG, fuzz = fuzz) |> image_scale(tamaño)
+#    IMG <- image_composite(canvas, IMG, gravity = "Center")
+    image_write(IMG, path = paste0(carpeta_destino,"/",as.character(info_mat$Rename[h]),".jpg"), density = dpi, quality = calidad)
     print(paste0(
-      "En UPC: ", upc_single, " ; IMG: ", mat_renombre
+      "En UPC: ", upc_single, " ; IMG: ", info_mat$Control[h]
     ))
   }
 }
@@ -127,4 +106,4 @@ for (i in seq_along(directorios)) {
 
 tabla_archivos <- data.frame(Carpetas = carpetas_list, Archivos = num_archivos)
 #readline() Preguntar al usuario si mostrar tabla
-#print(tabla_archivos)
+print(tabla_archivos)
