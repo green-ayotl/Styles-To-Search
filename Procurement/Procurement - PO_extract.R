@@ -17,12 +17,12 @@ library(lubridate)
 
 
 # Parametros
-archivos_procurement <- "A:/eduar/OneDrive - Axo/Documentos/2024/Mensual"
+archivos_procurement <- "A:/eduar/OneDrive - Axo/Documentos/Procurement/2024"
 #archivos_procurement <- choose.dir(caption = "Seleccionar carpeta de archivos de Procurement GUESS")
-#archivo_WIP <- "A:/eduar/OneDrive - Axo/Documentos/2024/11.Noviembre/WIP GUESS 25.11.2024.xlsx"
 
 #po_order <- unique(WIP$REFERENCIA)[sample(length(unique(WIP$REFERENCIA)),1)]
-po_order <- "2202300875A"
+#po_order <- readline(prompt = "Ingresa numero de orden P.O.")
+po_order <- "11306455"
 
 pestaña_wip <- "WIP"
 
@@ -90,7 +90,7 @@ arrange(tabla_po_orden,desc(Fuente))
 
 print(paste0("Se encontro el numero PO Orden en ",nrow(tabla_po_orden)," archivos WIP de un total de ",nrow(procurement_files)," archivos"))
 
-nuevo_archivo <- paste0("A:/eduar/OneDrive - Axo/Documentos/Procurement/2024/",po_order,".xlsx")
+nuevo_archivo <- paste0("A:/eduar/OneDrive - Axo/Documentos/Procurement",po_order,".xlsx")
 
 writexl::write_xlsx(tabla_po_orden, path = nuevo_archivo, col_names = TRUE, format_headers = TRUE)
 
@@ -98,5 +98,5 @@ shell.exec(nuevo_archivo)
 
 #ggplot2
 #Eje x: Fuente
-#Eje y: INDCFORMULA
-#Lineas Fechas aprox y real de transportes
+#Eje y: Rango de fechas entre entrega minimo de entrega de fabrica y  maximo de INDCFORMULA
+#Lineas por cada columna de "Entrega_Fabrica" "Real_Fabrica"      "Inicio_Carga"      "Real_Carga"        "Fin_Transporte"    "Contabilización"   "INDCFORMULA" 
