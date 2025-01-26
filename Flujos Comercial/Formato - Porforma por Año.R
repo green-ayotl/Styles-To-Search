@@ -18,7 +18,7 @@ año_procesar <- 2025 #Seleccionar año para background job
 library(magick)
 library(readxl)
 library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(writexl)
 library(DBI)
 library(RSQLite)
@@ -38,8 +38,19 @@ lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios")
 colnames(lista_precios) <- gsub("\\.", " ", colnames(lista_precios))
 dbDisconnect(SQLite.Guess_HB)
 
-#año_procesar <- readline( prompt = "Ingresa año a procesar; Formato numerico '20XX': ")
+# Base de materiales para obtener UPC
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+Base_Materiales_UPC <- dbReadTable(SQLite.Guess_HB, "Base.Materiales") %>% 
+  select(c("NUMERO_MATERIAL",
+           "CODIGO")) %>% 
+  rename(Material = "NUMERO_MATERIAL",
+         UPC = "CODIGO")
+dbDisconnect(SQLite.Guess_HB)
+#Lista extra de UPC
+UPCs <- read_xlsx(path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/UPC Faltantes/UPCs.xlsx")
+Base_Materiales_UPC <- Base_Materiales_UPC %>% bind_rows(UPCs)
 
+# Excel archivo Macro ----
 excel_macro <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Espacio/Excel Image in path/Excel_Place_Local_Pictures_In_Cell_Using_Formula_Hack_2607.xlsm"
 
 # ---- Cargar archivo excel - Lista de Precios ----
@@ -64,7 +75,6 @@ precios <- lista_precios %>%
 
 precios_HB <- filter(precios, Departamento == departamento_hb_main | Departamento == departamento_hb_factory) #Only HB materials
 
-
 # ---- Cargar archivo excel - Signal Materiales ----
 Signal_Handbags <- inventario_signal.materiales
 
@@ -83,6 +93,10 @@ lista_minis <- precios_HB %>% filter(Año == año_procesar)
 
 lista_minis_all <- left_join(x = lista_minis, y = Frontales_Signal_Materiales, by = "Material", suffix = c("", ".Signal"), keep = TRUE)
 
+# Unir UPC
+lista_minis_all <- left_join(lista_minis_all, Base_Materiales_UPC, by = "Material", keep = FALSE)
+
+# Conteo de materiales faltantes
 lista_minis <- lista_minis_all %>% filter(!is.na(Material.Signal))
 
 faltantes_anual <- sum(is.na(lista_minis_all$Material.Signal))
@@ -106,7 +120,6 @@ carpeta_destino <- paste0(dir_minis_year,año)
 dir_better_path <- "C:/HandBags/"
 
 mini_better_path <- paste0(dir_better_path,año)
-
 
 # Transformar archivo IMG ------
 # Obtener archivos de carpeta destino para continuar donde proceso fue detenido
@@ -172,9 +185,8 @@ write_xlsx(minis_path, path = general_list, col_names = TRUE, format_headers = T
 
 # Formato Anual de Proforma ----
 
-#Lista Principal
-proforma <- lista_minis_all %>% 
-  mutate(UPC = NA) %>%
+# Lista Principal ----
+proforma <- lista_minis_all %>%
   mutate(IMAGEN = NA) %>% 
   select(c(
     Material,
