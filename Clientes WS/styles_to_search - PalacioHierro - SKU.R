@@ -8,14 +8,20 @@ library(tidyverse)
 
 
 #Parametros Cliente
-tamaño <- "2000x2000"
-alto <- "2000" # Canvas size
-ancho <- "2000" #Canvas size
-dpi <- 72
-extension <- ".jpg"
+especificaciones <- read_excel("Styles To Search - General.xlsx", sheet = "Especificaciones") %>% 
+  filter(Cliente == "Palacio de Hierro") %>% slice(1)
+
+tamaño <- especificaciones$resolución
+alto <- especificaciones$alto.imagen # Canvas size
+ancho <- especificaciones$ancho.imagen #Canvas size
+dpi <- especificaciones$densidad
+extension <- especificaciones$extension.final
+calidad <- especificaciones$calidad
+gravedad <- especificaciones$gravedad
 
 #Lista de archivos
 styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "PalacioHierro - IMG")
+
 
 readline( prompt = "Seleccionar carpeta donde guardar [Enter]")
 
@@ -40,10 +46,10 @@ counting <- 1
 total_imgs <- nrow(styles_to_search)
 
 for (i in 1:nrow(styles_to_search)) {
-  full_name <- styles_to_search$`Full Name`[i]
-  IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
-  IMG <- image_composite(canvas, IMG, gravity = "Center")
-  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i],extension), density = dpi, quality = 50)
+  full_name <- styles_to_search$Full_Path[i]
+  IMG <- image_read( path = full_name) |> image_trim(fuzz = 80) |> image_scale(tamaño)
+  IMG <- image_composite(canvas, IMG, gravity = gravedad)
+  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i],extension), density = dpi, quality = calidad)
   print(paste0(styles_to_search$Rename[i], "; procesado: ", counting," de ", total_imgs))
   counting <- counting + 1
 }

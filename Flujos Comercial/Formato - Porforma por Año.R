@@ -5,60 +5,75 @@
     ## Año a procesar, dado por usuario
     ## Dirección Macro excel para pegar miniaturas
 # Al teminar el script, abre los archivos para terminar manualmente el formato de reporte
-# Archivo Output: .../Imágenes/Minis/ "año seleccionado" 'Bolsas Celdas Proforma' -Fech2a actual-.xlsx
+# Archivo Output: .../Imágenes/Minis/ "año seleccionado" 'Bolsas Celdas Proforma' -Fecha actual-.xlsx
 
 # To-Do: Utilizar información de ultimo reporte creado para rellanar información de nuevo reporte a crear
+
+# Parámetros ----
+
+año_procesar <- 2025 #Seleccionar año para background job
+
+# Librerias ----
 
 library(magick)
 library(readxl)
 library(dplyr)
 library(tidyr)
 library(writexl)
+library(DBI)
+library(RSQLite)
 
 # ---- Importación de información ----
+# Inventario: Materiales Signal
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+inventario_signal.materiales <- dbReadTable(SQLite.Guess_HB, "Materiales.Signal")
+dbDisconnect(SQLite.Guess_HB)
 
-Signal_Materiales <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Signal Materiales.xlsx"
+#Signal_Materiales <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Signal Materiales.xlsx"
 
-source("R/funcion_return_latest_file_dir.R", echo = FALSE)
-lista_precios <- latest_file(carpeta_archivos = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Lista de Precios", patron_archivos = ".xlsx")
+# Lista de precios
+source("Flujos Comercial/latest_lista_precios.R", echo = FALSE)
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios")
+colnames(lista_precios) <- gsub("\\.", " ", colnames(lista_precios))
+dbDisconnect(SQLite.Guess_HB)
 
 #año_procesar <- readline( prompt = "Ingresa año a procesar; Formato numerico '20XX': ")
-año_procesar <- 2025 #Seleccionar año para background job
+
 excel_macro <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Espacio/Excel Image in path/Excel_Place_Local_Pictures_In_Cell_Using_Formula_Hack_2607.xlsm"
 
 # ---- Cargar archivo excel - Lista de Precios ----
 departamento_hb_main <-"Handbags"
 departamento_hb_factory <- "Handbags Factory"
 
-precios <- read_xlsx( path = lista_precios) %>%
+precios <- lista_precios %>%
   select(c("Código de estilo",
            "Descripción breve de estilo",
            "Código de Temporada",
            "Descripción de Temporada",
            "Año",
-           "Etiqueta de grupo de jerarquía[Department]",
-           "Etiqueta de grupo de jerarquía[Class]",
-           "Etiqueta de grupo de jerarquía[Sub-Class]",
+           "Etiqueta de grupo de jerarquía Department ",
+           "Etiqueta de grupo de jerarquía Class ",
+           "Etiqueta de grupo de jerarquía Sub Class ",
            "Precio IB minorista")) %>% 
   rename("Material" = "Código de estilo") %>% 
   rename("Temporada" = "Código de Temporada") %>% 
-  rename("Departamento" = "Etiqueta de grupo de jerarquía[Department]") %>% 
-  rename("Clase" = "Etiqueta de grupo de jerarquía[Class]") %>% 
-  rename("Sub-Clase" = "Etiqueta de grupo de jerarquía[Sub-Class]")
+  rename("Departamento" = "Etiqueta de grupo de jerarquía Department ") %>% 
+  rename("Clase" = "Etiqueta de grupo de jerarquía Class ") %>% 
+  rename("Sub-Clase" = "Etiqueta de grupo de jerarquía Sub Class ")
 
 precios_HB <- filter(precios, Departamento == departamento_hb_main | Departamento == departamento_hb_factory) #Only HB materials
 
 
 # ---- Cargar archivo excel - Signal Materiales ----
-Signal_Handbags <- read_xlsx( path = Signal_Materiales, sheet = "Materiales Signal")
+Signal_Handbags <- inventario_signal.materiales
 
 # Silueta frontales imágenes
   #"F" y "RZ"
 
 Frontales_Signal_Materiales <- Signal_Handbags %>% 
   filter(Cara == "F" | Cara == "RZ") %>% 
-  select(c(Material, File_Name, `Folder Path`)) %>% 
-  mutate("Full_Path" = paste0(`Folder Path`, File_Name)) %>% 
+  select(c(Material, Full_Path)) %>% 
   distinct(Material, .keep_all = TRUE) %>% 
   select(c("Material", "Full_Path"))
 
