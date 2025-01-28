@@ -130,7 +130,7 @@ minis <- tools::file_path_sans_ext(list.files( path = carpeta_destino, full.name
 # Counters
 skipped <- 0
 procesado <- 0
-counting <- 0
+counting <- 1
 
 for (i in 1:nrow(lista_minis)) {
 #Test to find already processed
@@ -140,12 +140,13 @@ for (i in 1:nrow(lista_minis)) {
     ))
     skipped <- skipped + 1
   } else {
+  try({  
   IMG <- image_read(path = lista_minis$Full_Path[i]) %>%  
   image_trim() %>% 
   image_scale(200) %>% 
-  image_write(path = paste0(carpeta_destino,"/",lista_minis$Material[i],".jpg"))
-  Sys.sleep(5) #Disco almacenamiento se ocupa: descargar la imagen, escribirla y subirla, permite trabajar la cola de procesos
+  image_write(path = paste0(carpeta_destino,"/",lista_minis$Material[i],".jpg"))}, silent = TRUE)
   print(paste0(lista_minis$Material[i],"; [",counting,"/",total, "] ; -Procesado-"))
+  Sys.sleep(5) #Disco almacenamiento se ocupa: descargar la imagen, escribirla y subirla, permite trabajar la cola de procesos
   procesado <- procesado + 1
   }
   counting <- counting + 1
@@ -251,13 +252,20 @@ print("Reportes Creados")
 # Run-em
 files <- c(general_list, proforma_file, excel_macro)
 
-if(procesado == 0){
-  #Skip: open files
-  print("Sin actualización de imagenes, no se abriran archivos")
-}else{
+#if(procesado == 0){
+#  #Skip: open files
+#  print("Sin actualización de imagenes, no se abriran archivos")
+#}else{
   #Open files
-  print("Abriendo archivos actualizados")
-for(i in files){
-  shell.exec(i)
-  Sys.sleep(3)
-}}
+#  print("Abriendo archivos actualizados")
+#for(i in files){
+#  shell.exec(i)
+#  Sys.sleep(3)
+#}}
+
+# Escribir SQLite ----
+tabla <- paste0("Proforma_",año_procesar)
+SQLite.Proformas <- dbConnect(SQLite(), "db/proforma_anuales.sqlite")
+dbWriteTable(SQLite.Proformas, paste0("Proforma_",año_procesar), proforma, overwrite = TRUE)
+
+dbDisconnect(SQLite.Proformas)

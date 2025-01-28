@@ -9,46 +9,78 @@
 library(readxl)
 library(dplyr)
 library(stringr)
+library(DBI)
+library(RSQLite)
 
-# ---- Parametros Generales
-año_busqueda <- 2024
+# ---- Parametros Generales ----
+año_busqueda <- 2025 # Cambiar año para copiar a la colección, permite hacer background job con ambiente independiente
+departamento_handbags <- c("Handbags","Handbags Factory")
+#Carpeta compartida
+imagenes_signal <- "C:/Users/ecastellanos.ext/OneDrive - Axo/IMAGENES SIGNAL/"
 
-# ---- Parametros, dirección de archivos
 
-lista_precios <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Lista de Precios/Lista de precios.xlsx" # AXO_pc
+# ---- Cargar información: Lista de Precios ----
 
-# ---- Carga de información
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios") # AXO_pc
+dbDisconnect(SQLite.Guess_HB)
 
-precios <- read_xlsx(path = lista_precios, col_names = TRUE)
+# ---- Cargar información: Inventario Signal ----
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+Inventario.Signal.Materiales <- dbReadTable(SQLite.Guess_HB, "Materiales.Signal") %>% 
+  filter(Cara == "F" | Cara == "RZ") %>% 
+  select(c(Material,
+           Full_Path))
+dbDisconnect(SQLite.Guess_HB)
 
-# ---- Filtro Lista de Precios
-#Valores de departamento que incluyan la cadena "Handbags"
+# Filtro Lista de Precios ----
 
-departamento_handbags <- precios %>%
-  select(`Etiqueta de grupo de jerarquía[Department]`) %>%
-  filter(str_detect(`Etiqueta de grupo de jerarquía[Department]`, "Handbags")) %>% 
-  unique() #%>% print()
-# Usual output
-  #1 Handbags                                    
-  #2 Handbags Factory                            
-  #3 Handbags GBG                                
-  #4 Handbags Luxe                               
-  #5 Handbags Marciano  
+precios <- lista_precios %>% 
+  rename(Material = Código.de.estilo,
+         Temporada = Código.de.Temporada,
+         Departamento = Etiqueta.de.grupo.de.jerarquía.Department.,
+         ) %>% select(c(Material, Temporada, Departamento, Año)) %>% 
+  filter(Año == año_busqueda) %>% 
+  filter(Departamento %in% departamento_handbags)
 
-departamento_hb_main <-"Handbags"
-departamento_hb_factory <- "Handbags Factory"
+# Unir Lista Precios (año procesar) con Inventario Materiales ----
 
-# Filtro por departamentos: Main y Factory con año de parametro,
+materiales <- inner_join(precios, Inventario.Signal.Materiales, by = "Material", keep = FALSE) %>% 
+  distinct(Material, .keep_all = TRUE) %>% 
+  mutate(Extension = tools::file_ext(Full_Path)) %>% 
+  mutate(Rename = paste0(Material,".",Extension))
 
-materiales_HB <- filter(precios, precios$Año == año_busqueda) %>%
-  filter(`Etiqueta de grupo de jerarquía[Department]` == departamento_hb_main | `Etiqueta de grupo de jerarquía[Department]` == departamento_hb_factory) %>% 
-  select(c("Código de estilo", "Etiqueta de grupo de jerarquía[Department]","Etiqueta de grupo de jerarquía[Class]","Etiqueta de grupo de jerarquía[Sub-Class]")) %>% 
-  rename("Material" = "Código de estilo") %>% 
-  rename("Departamento" = "Etiqueta de grupo de jerarquía[Department]") %>% 
-  rename("Clase" =  "Etiqueta de grupo de jerarquía[Class]") %>% 
-  rename("Sub-Clase" =  "Etiqueta de grupo de jerarquía[Sub-Class]")
-  
-summarise(materiales_HB) 
+# Contadores
+copiado <- 1
+skipped <- 0
+procesado <- 1
+carpeta_destino <- paste0(imagenes_signal,año_busqueda,"/")
+lista_carpeta <- list.files(path = carpeta_destino, full.names = FALSE) %>% str_extract("^[^.]+")
+total <- nrow(materiales)
 
-# Cargar Inventario de materiales
-  # Merge a travez de materialcon filtro de caras frontales
+# Copiar en carpeta compartida ----
+for (i in 1:nrow(materiales)) {
+  if (any(lista_carpeta == materiales$Material[i])) {
+    #Material ya se encuentra en la carpeta destino
+    print(paste0(
+      "Material: ",materiales$Material[i]," -omitido-; [",procesado,"/",total,"]"
+    ))
+    skipped <- skipped + 1
+  } else {
+  # Copiar material, no se encuentra en la carpeta destino
+  file.copy(
+    from = materiales$Full_Path[i],
+    to =  paste0(carpeta_destino, materiales$Rename[i]),
+    overwrite = FALSE,
+    copy.date = FALSE)
+    
+    copiado <- copiado + 1
+    
+    print(paste0(
+      "Material: ",materiales$Material[i]," -copiado-; [",procesado,"/",total,"]"
+    ))
+    Sys.sleep(1)
+  }
+  procesado <- procesado +1
+}
+

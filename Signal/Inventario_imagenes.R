@@ -25,7 +25,7 @@ colores[,Color_Code := str_to_upper(Color_Code)]
 
 # Origen Carpeta Signal en ShareFile ----
 
-sharefile_drive = "G:/Carpetas/"
+sharefile_drive = "S:/Carpetas/" # Carpeta default para programa escritorio de sharefile
 
 departamentos_guess_signal <- data.frame(Departamento = c(
   "Mainline", "Factory", "Mens"),
@@ -87,6 +87,10 @@ Signal.Materiales <- left_join(Signal_Bolsas, colores, by = "Color_Name", copy =
     "Departamento_Signal")) #Dejar solo columna importantes para exportar
 
 # To-Do: Crear lista de Colores Huérfanos
+
+# Imprimir conteo del inventario
+# To do: comparar con el inventario anterior
+
 
 # Exportar CSV ----
 write.csv(Signal.Materiales, file = "db/Inventario_Signal_Materiales.csv", row.names = FALSE, na = "")

@@ -31,7 +31,7 @@ total_imgs <- nrow(styles_to_search)
 
 for (i in 1:nrow(styles_to_search)) {
   full_name <- styles_to_search$Full_Path[i]
-  IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
+  IMG <- image_read( path = full_name) |> image_trim() |> image_scale(tamaño)
   IMG <- image_composite(canvas, IMG, gravity = "Center")
   image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "JPEG", depth = "8")
   Sys.sleep(2) #Mimir pausa para que no explote la computadora

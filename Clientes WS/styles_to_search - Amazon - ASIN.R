@@ -52,11 +52,11 @@ for (i in indice_inicio:total_imgs) {
     ))
     counting <- counting + 1
   } else {
-  full_name <- styles_to_search$`Full Name`[i]
-  IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
+  full_name <- styles_to_search$Full_Path[i]
+  IMG <- image_read( path = full_name) |> image_trim() |> image_scale(tamaño)
   IMG <- image_composite(canvas, IMG, gravity = "Center")
   IMG <- image_convert(IMG, colorspace = "RGB")
-  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "JPEG", depth = "8")
+  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "LosslessJPEG", depth = "16")
   print(paste0(
     "Material: ",styles_to_search$Material[i],"; archivo procesado: ",styles_to_search$Rename[i], "; procesado: ", counting," de ", total_imgs))
   counting <- counting + 1

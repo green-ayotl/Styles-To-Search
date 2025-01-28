@@ -30,17 +30,28 @@ counting <- 1
 total_imgs <- nrow(styles_to_search)
 
 for (i in 1:nrow(styles_to_search)) {
-  full_name <- styles_to_search$`Full Name`[i]
-  IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
+  full_name <- styles_to_search$Full_Path[i]
+  IMG <- image_read(path = full_name) |> image_trim() |> image_scale(tamaño)
   IMG <- image_composite(canvas, IMG, gravity = "Center")
-  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i],extension), density = dpi)
+  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i],extension),
+              density = dpi,
+              quality = 50,
+              depth = 8,
+              compression = "JPEG",
+              format = "jpeg")
   
   # Reducir peso de archivo 
 #  file_size <- file.info(paste0(carpeta_final,"/",styles_to_search$Renombre[i],extension))$size
 
   print(paste0(styles_to_search$Rename[i], "; procesado: ", counting," de ", total_imgs))
   counting <- counting + 1
+
 }
+
+procesados <- data.frame(Full_Path = list.files(path = carpeta_final, pattern = extension, full.names = TRUE),
+                         Archivos = list.files(path = carpeta_final, pattern = extension, full.names = FALSE))
+procesados$tamaño.KB <- ceiling(file.info(procesados$Full_Path)$size / 1024)
+
 
 # To-Do 
 # Compress images for target size
