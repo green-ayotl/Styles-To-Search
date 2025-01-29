@@ -265,7 +265,9 @@ files <- c(general_list, proforma_file, excel_macro)
 
 # Escribir SQLite ----
 tabla <- paste0("Proforma_",año_procesar)
+tabla_faltantes <- paste0("Materiales.Faltantes_",año_procesar)
 SQLite.Proformas <- dbConnect(SQLite(), "db/proforma_anuales.sqlite")
-dbWriteTable(SQLite.Proformas, paste0("Proforma_",año_procesar), proforma, overwrite = TRUE)
+dbWriteTable(SQLite.Proformas, tabla, proforma, overwrite = TRUE) # Formato proforma
+dbWriteTable(SQLite.Proformas, tabla_faltantes, Materiales_no_picture, overwrite = TRUE) # Lista Materiales Faltantes
 
 dbDisconnect(SQLite.Proformas)
