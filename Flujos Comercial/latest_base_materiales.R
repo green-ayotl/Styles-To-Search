@@ -22,8 +22,11 @@ latest_files_base.materiales <- data.frame(files = files_base.materiales, file_m
   arrange(desc(file_modification)) %>% slice(1)
 
 base.materiales <- read_xlsx(path = latest_files_base.materiales[1,1]) %>% 
-  rename(Formula = "...2", CONCAT = "...3", codigo.registro = "...4", ) %>% 
-  slice(-c(1:3))
+  slice(-c(1:3)) %>% select(-c("DESCRIPCION"))
+
+colnames(base.materiales)[1] = "ESTILO"
+colnames(base.materiales)[2] = "NUMERO_MATERIAL"
+colnames(base.materiales)[3] = "CONCAT"
 
 # SQLite ----
 SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")

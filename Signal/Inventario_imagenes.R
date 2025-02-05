@@ -17,7 +17,8 @@ extensiones_imagenes <- c("jpg","JPG","tif","tiff")
 # Archivo Colores Signal ----
 
 colores <- data.table(read_excel(
-  path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Colores_Guess_Signal.xlsx")) %>% 
+  path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Colores_Guess_Signal.xlsx",
+  sheet = "Colores_Guess_Signal")) %>% 
   rename(Color_Name = "Color Proveedor", Color_Code = "Codigo de color")
   # Limpieza Simple: Archivo Colores
 colores[,Color_Name := str_to_upper(Color_Name)]
