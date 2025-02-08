@@ -22,13 +22,14 @@ library(tidyr)
 library(dplyr)
 library(stringr)
 library(magick)
+library(readr)
 
 # ------
 # Requerimientos Meli
 tamaño <- "1600x1600"
 alto <- "1600" # Canvas size
 ancho <- "1600" #Canvas size
-fuzz <- 40
+fuzz <- 20
 dpi <- 72
 extension <- ".jpg"
 calidad <- 75
@@ -44,10 +45,10 @@ print(paste0(
   "Se encontro un total de ",
   length(unique(styles_to_search$Material)),
   " materiales con correspondiente: ",
-  length(unique(styles_to_search$`Codigo UPC`)),
+  length(unique(styles_to_search$Codigo_UPC)),
   " codigos UPC."
 ))
-if (length(unique(styles_to_search$Material)) == length(unique(styles_to_search$`Codigo UPC`))) {
+if (length(unique(styles_to_search$Material)) == length(unique(styles_to_search$Codigo_UPC))) {
   print("Materiales y codigos UPC con sentido")
 } else {
     print("Checar lista de materiales importada, no dan sentido, materiales o codigos UPC repetidos")
@@ -67,7 +68,7 @@ counting <- 1
 for (i in 1:nrow(styles_to_search)) {
 
   #Seleccionar Codigo UPC
-  upc_single <- as.character(styles_to_search$`Codigo UPC`[i])
+  upc_single <- as.character(styles_to_search$Codigo_UPC[i])
   upc_folder <- paste0(carpeta_final,"/", upc_single)
   
   #Crear directorio con el UPC donde quedara las imágenes
@@ -77,11 +78,11 @@ for (i in 1:nrow(styles_to_search)) {
   #Seleccionar nuevo directorio
   carpeta_destino <- upc_folder #Paso repetido repetido
   
-  info_mat <- styles_to_search %>% filter(styles_to_search$`Codigo UPC` == styles_to_search$`Codigo UPC`[i])
+  info_mat <- styles_to_search %>% filter(styles_to_search$Codigo_UPC == styles_to_search$Codigo_UPC[i])
   
   #Editar imagenes
   for (h in 1:nrow(info_mat)){
-    IMG <- image_read( path = info_mat$`Full Name`[h]) #Ruta de imagen a editar
+    IMG <- image_read( path = info_mat$Full_Path[h]) #Ruta de imagen a editar
     IMG <- image_trim(IMG, fuzz = fuzz) |> image_scale(tamaño)
 #    IMG <- image_composite(canvas, IMG, gravity = "Center")
     image_write(IMG, path = paste0(carpeta_destino,"/",as.character(info_mat$Rename[h]),".jpg"), density = dpi, quality = calidad)

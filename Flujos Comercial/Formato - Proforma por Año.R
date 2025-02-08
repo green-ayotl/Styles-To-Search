@@ -2,7 +2,7 @@
   ## Utiliza 4 fuentes de información
     ## Inventario de Materiales sincronizado de signal
     ## Lista de precios más reciente
-    ## Año a procesar, dado por usuario
+    ## Año a procesar, primer parametro del script
     ## Dirección Macro excel para pegar miniaturas
 # Al teminar el script, abre los archivos para terminar manualmente el formato de reporte
 # Archivo Output: .../Imágenes/Minis/ "año seleccionado" 'Bolsas Celdas Proforma' -Fecha actual-.xlsx
@@ -32,7 +32,6 @@ dbDisconnect(SQLite.Guess_HB)
 #Signal_Materiales <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Signal Materiales.xlsx"
 
 # Lista de precios
-source("Flujos Comercial/latest_lista_precios.R", echo = FALSE)
 SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
 lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios")
 colnames(lista_precios) <- gsub("\\.", " ", colnames(lista_precios))
@@ -46,9 +45,11 @@ Base_Materiales_UPC <- dbReadTable(SQLite.Guess_HB, "Base.Materiales") %>%
   rename(Material = "NUMERO_MATERIAL",
          UPC = "CODIGO")
 dbDisconnect(SQLite.Guess_HB)
+
 #Lista extra de UPC
 UPCs <- read_xlsx(path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/UPC Faltantes/UPCs.xlsx")
-Base_Materiales_UPC <- Base_Materiales_UPC %>% bind_rows(UPCs)
+Base_Materiales_UPC <- Base_Materiales_UPC %>% bind_rows(UPCs) #No necesita distinct, en bolsas existe 1 material = 1 UPC
+
 
 # Excel archivo Macro ----
 excel_macro <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Espacio/Excel Image in path/Excel_Place_Local_Pictures_In_Cell_Using_Formula_Hack_2607.xlsm"
@@ -58,20 +59,15 @@ departamento_hb_main <-"Handbags"
 departamento_hb_factory <- "Handbags Factory"
 
 precios <- lista_precios %>%
-  select(c("Código de estilo",
+  select(c("Material",
            "Descripción breve de estilo",
-           "Código de Temporada",
+           "Temporada",
            "Descripción de Temporada",
            "Año",
-           "Etiqueta de grupo de jerarquía Department ",
-           "Etiqueta de grupo de jerarquía Class ",
-           "Etiqueta de grupo de jerarquía Sub Class ",
-           "Precio IB minorista")) %>% 
-  rename("Material" = "Código de estilo") %>% 
-  rename("Temporada" = "Código de Temporada") %>% 
-  rename("Departamento" = "Etiqueta de grupo de jerarquía Department ") %>% 
-  rename("Clase" = "Etiqueta de grupo de jerarquía Class ") %>% 
-  rename("Sub-Clase" = "Etiqueta de grupo de jerarquía Sub Class ")
+           "Departamento",
+           "Clase",
+           "Sub Clase",
+           "Precio IB minorista"))
 
 precios_HB <- filter(precios, Departamento == departamento_hb_main | Departamento == departamento_hb_factory) #Only HB materials
 
@@ -111,8 +107,8 @@ presentes_temp <- lista_minis_all %>% group_by(Departamento,Temporada) %>% summa
 año <- año_procesar #Seleccionar año para crear caratulas
 
 # Parámetros Carpetas ----
-#Carpetas objetivo, temp in order to copy to better path
-dir_minis_year <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Minis/"
+#Carpetas objetivo, para guardar en onedrive _in order to copy to better path_
+dir_minis_year <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Proformas/"
 
 carpeta_destino <- paste0(dir_minis_year,año)
 
@@ -197,7 +193,7 @@ proforma <- lista_minis_all %>%
     Temporada,
     `Descripción breve de estilo`,
     Clase,
-    `Sub-Clase`))
+    `Sub Clase`))
 
 proforma$Departamento <- replace(proforma$Departamento, 
                                  lista_minis_all$Departamento == departamento_hb_main,
@@ -269,5 +265,9 @@ tabla_faltantes <- paste0("Materiales.Faltantes_",año_procesar)
 SQLite.Proformas <- dbConnect(SQLite(), "db/proforma_anuales.sqlite")
 dbWriteTable(SQLite.Proformas, tabla, proforma, overwrite = TRUE) # Formato proforma
 dbWriteTable(SQLite.Proformas, tabla_faltantes, Materiales_no_picture, overwrite = TRUE) # Lista Materiales Faltantes
+# Escribir tabla de UPC en SQLite guess_hb
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+dbWriteTable(SQLite.Guess_HB, "Materiales.UPC", Base_Materiales_UPC)
 
 dbDisconnect(SQLite.Proformas)
+dbDisconnect(SQLite.Guess_HB)

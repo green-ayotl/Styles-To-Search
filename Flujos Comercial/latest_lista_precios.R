@@ -8,6 +8,7 @@ library(tidyverse)
 library(DBI)
 library(RSQLite)
 
+
 # Parametros ----
 dir_lista.precios <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Lista de Precios"
 extension_lista.precios <- ".xlsx"
@@ -42,3 +43,5 @@ SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
 dbWriteTable(SQLite.Guess_HB, "Lista.Precios", lista.precios, overwrite = TRUE)
 
 dbDisconnect(SQLite.Guess_HB)
+
+write.csv(lista.precios, file = "db/Lista_Precios.csv", row.names = FALSE, na = "")
