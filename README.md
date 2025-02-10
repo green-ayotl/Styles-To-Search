@@ -69,7 +69,9 @@
 	- Matriz_devuelta: Columna B del archivo o columna: ***Ubicación Archivo*** de la tabla
 	- \[si_no_se_encuentra]: colocar el parametro **"-"** 
 	- Otros parámetros son opcionales
-- Seleccionar solo los archivos encontrados con **Alt** *+* **','** (coma)
+- Seleccionar solo los archivos encontrados
+	- Quitando la selección de aquellas filas con **"-"**
+	- Y seleccionando todas las filas visibles con **Alt** *+* **','** (coma)
 - Activar macro desde la pestaña de **programador** en excel
 	- ![Alt text](https://github.com/green-ayotl/Styles-To-Search/blob/main/Media/Tutorial%20-%20Pesta%C3%B1a_programador.png)
 	- ![Alt text](https://github.com/green-ayotl/Styles-To-Search/blob/main/Media/Tutorial%20-%20Boton%20Macros.png)
