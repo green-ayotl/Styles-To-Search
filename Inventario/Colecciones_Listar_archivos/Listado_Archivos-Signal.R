@@ -1,5 +1,11 @@
 # Preface ----
 
+library(tidyverse)
+library(data.table)
+library(tools)
+library(DBI)
+library(RSQLite)
+
 #Listado de archivos de la colección desde signal en todos los departamentos
   #Guarda en su correspondiente SQLite, la lista ampliada de archivos
     #Para su utilización en flujos consecutivos de trabajo

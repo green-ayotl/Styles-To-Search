@@ -55,12 +55,12 @@
 		- Excel no tiene herramientas para comprimir las imágenes importadas de manera eficiente o siempre correcta.
 #### Tutorial
 - En la tabla \[Dirección] pegar la ruta completa donde se encuentre las imágenes. Se listaran todas las imágenes incluso si se encuentran dentro de otras carpetas.
-![[Tutorial - Miniatura Celda (1).png]]
+![Alt text](Media/Tutorial - Miniatura Celda.png)
 - Colocar en la segunda tabla el filtro de archivos (archivos de imagen) para importar a la celda. Puedes agregar más extensión de archivos escribiendo debajo (la tabla aumentara de tamaño automáticamente) y eliminando extensiones seleccionando las celdas que se quieran borrar y usando **Ctrl** *+* **-** (guion ó menos)
 - Ve a la pestaña: "Lista_Archivos"
-	- ![[Segunda Pestaña.png]]
+	- ![Alt text](Media/Tutorial - Segunda Pestaña.png)
 	- Click derecho en cualquier parte de la tabla y dale a la opción actualizar
-		- ![[Actualizar tabla.png]]
+		- ![Alt text](Media/Tutorial - Actualizar tabla.png)
 	- Los archivos en tal formato y en tal carpeta dada se mostraran en la tabla, incluyendo los archivos en subcarpetas.
 - Utiliza la función BUSCARX en tu nuevo documento con la lista de archivos.
 	- Sintaxis: **=BUSCARX(valor_buscado; matriz_buscada; matriz_devuelta; [si_no_se_encuentra]; [modo_de_coincidencia]; [modo_de_búsqueda])**
@@ -71,9 +71,9 @@
 	- Otros parámetros son opcionales
 - Seleccionar solo los archivos encontrados con **Alt** *+* **','** (coma)
 - Activar macro desde la pestaña de **programador** en excel
-	- ![[Pestaña_programador.png]]
-	- ![[Boton Macros.png]]
-	- ![[Activar Macro.png]]
+	- ![Alt text](Media/Tutorial - Pestaña_programador.png)
+	- ![Alt text](Media/Tutorial - Boton Macros.png)
+	- ![Alt text](Media/Tutorial - Activar Macro.png)
 - Se exportara la imagen a la celda en tu documento. La imagen es la información de la celda, lo puedes referenciar u copiar en otros documentos.
 ### Extra
 - Scripts variados para otros temas o departamentos

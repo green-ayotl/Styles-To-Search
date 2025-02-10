@@ -1,6 +1,7 @@
 library(tidyverse)
 library(data.table)
-
+library(DBI)
+library(RSQLite)
 
 # Extensión de archivos a listar
 
