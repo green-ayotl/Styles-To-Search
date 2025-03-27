@@ -46,7 +46,7 @@ done <- tools::file_path_sans_ext(list.files(path = carpeta_final, full.names = 
 for (i in 1:nrow(styles_to_search)) {
   if (any(styles_to_search$Rename[i] == done)){
     print(paste0(
-      "Ya se encuentra el archivo: ", styles_to_search$Rename[i], " -Omitido-. [", counting,"/",total_imgs,"]"
+      "Ya se encuentra el archivo: ", styles_to_search$Rename[i], "; -Omitido-. [", counting,"/",total_imgs,"]"
     ))
   } else {
   full_name <- styles_to_search$Full_Path[i]

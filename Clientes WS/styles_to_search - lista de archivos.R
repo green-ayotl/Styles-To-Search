@@ -5,7 +5,8 @@ library(dplyr)
 
 #------
 #Parametros
-extension <- ".jpg"
+extension <- ".tif"
+duplicados <- FALSE #Evitar duplicados si hay 
 
 # Archivo Busqueda general, pestaña "Lista"
 styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Lista - IMG")
@@ -24,7 +25,7 @@ print(paste0(
 ))
 #readline(prompt = "Presiona [Enter] para continuar") 
 
-carpeta_destino <- gsub("\\\\","/", choose.dir())
+carpeta_destino <- gsub("\\\\","/", choose.dir()) |> paste0("/")
 
 # To-Do Error caching on excel file, error on empty/null rows
 #---
@@ -38,25 +39,25 @@ done <- basename(list.files(path = carpeta_destino, pattern = extension, full.na
 
 # Loop ----
 #Copia de archivos a partir de la lista de búsqueda
-for (i in counting:nrow(styles_to_search)) {
+for (i in 1:nrow(styles_to_search)) {
   # Skiped if already done
-  if(any(paste0(styles_to_search$Material_Rename[i],extension) == done)){
-    print(paste0("Ya se encuentra el archivo: ",styles_to_search$Material_Rename[i],extension," -Skipped-", " [",counting,"/",total,"]"))
+  if(any(paste0(styles_to_search$Rename[i],extension) == done)){
+    print(paste0("Ya se encuentra el archivo: ",styles_to_search$Rename[i],extension," -Skipped-", " [",counting,"/",total,"]"))
   } else {
   
-  file.copy( from = styles_to_search$`Full Name`[i],
-             to = paste0(carpeta_destino,"/",styles_to_search$Material_Rename[i],extension)
+  file.copy( from = styles_to_search$Full_Path[i],
+             to = paste0(carpeta_destino,styles_to_search$Rename[i],extension)
              )
   Sys.sleep(1)
   #Copiar a nueva carpeta destino
-  print(paste0("Archivo copiado de material: ",styles_to_search$Material_Rename[i], ", archivo ",  " [",counting,"/",total,"]"))
+  print(paste0("Archivo copiado de material: ",styles_to_search$Rename[i], ", archivo ",  " [",counting,"/",total,"]"))
   }
   counting <- counting + 1
 }
 
 #Información de los archivos (imagenes) copiados
 print(paste0(
-  "En la carpeta ahora hay: ",length(list.files( path = carpeta_destino, pattern = ".jpg")), " archivos .jpg"
+  "En la carpeta ahora hay: ",length(list.files( path = carpeta_destino, pattern = extension)), " archivos ", extension
 ))
 
 conteo_materiales <- data.frame(

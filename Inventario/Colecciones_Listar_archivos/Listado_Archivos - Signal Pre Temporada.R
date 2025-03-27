@@ -1,3 +1,5 @@
+#Imagenes para reporte 
+
 # Preface ----
 
 library(tidyverse)
@@ -13,12 +15,12 @@ library(RSQLite)
 #Aislamiento de procesos: acId
 
 # Origen Carpeta Signal en ShareFile ----
-sharefile_drive = "S:/Carpetas/" # Carpeta default para programa escritorio de sharefile
+sharefile_drive = "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Reporte Pre-Temporada/" # Carpeta donde se encuentran las carpetas
 
 # Listado de departamentos
 departamentos_guess_signal <- data.frame(Departamento = c(
-  "Mainline", "Factory", "Mens"),
-  Directorio = c("GUESS MAINLINE ECOM IMAGES", "SPECIAL MARKETS ECOM", "GUESS MENS ECOM"))
+  "Summer 25", "Fall 25"),
+  Directorio = c("Summer 25", "Fall 25"))
 
 # Tabla vacia para agregar la lista de archivos
 files_signal_guess <- data.table(Full_Path = as.character(),
@@ -28,7 +30,7 @@ files_signal_guess <- data.table(Full_Path = as.character(),
 # Mejorar Scaneo de archivos por año, para scaneo rapido (temporada/año actual)
 for(i in departamentos_guess_signal$Directorio){
   comienzo = Sys.time()
-  files_signal_guess <- rbind(files_signal_guess, data.frame(Full_Path = list.files(path = paste0(sharefile_drive,i,"/"), full.names = TRUE, recursive = TRUE),
+  files_signal_guess <- rbind(files_signal_guess, data.frame(Full_Path = list.files(path = paste0(sharefile_drive,i,"/"), full.names = TRUE, recursive = TRUE, pattern = ".jpg"),
                                                              Departamento_Signal = i))
   print(paste0("Departamento: ",i," inventariado"))
   print("Tiempo procesado: ")
@@ -40,9 +42,9 @@ files_signal_guess <- mutate(files_signal_guess, File_Name = file_path_sans_ext(
   mutate(File_Ext = file_ext(str_extract(files_signal_guess$Full_Path, "[^/]*$")))
 
 # SQLite ----
-Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite") # db para lista de archivos
-dbWriteTable(Files.HB_Guess, "Signal", files_signal_guess, overwrite = TRUE)
-dbDisconnect(Files.HB_Guess)
+#Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite") # db para lista de archivos
+#dbWriteTable(Files.HB_Guess, "Signal", files_signal_guess, overwrite = TRUE)
+#dbDisconnect(Files.HB_Guess)
 
 # Limpiar ambiente
 #rm(departamentos_guess_signal,

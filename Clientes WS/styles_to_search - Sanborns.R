@@ -34,7 +34,6 @@ styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Sanbo
 #materiales_signal <- read_excel( path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Materiales Signal.xlsx", 
 #                                sheet = "Special Market (Factory)")
 
-
 #Display info: wait and continue
 
 print(paste0(
@@ -76,14 +75,24 @@ total_imgs <- nrow(styles_to_search)
 #  print(paste0(destino,"/",upc_name,"_",consecutivo,extension))
 #}
 
+done <- tools::file_path_sans_ext(list.files( path = carpeta_final, full.names = FALSE))
+
+
 for (i in 1:nrow(styles_to_search)) {
-  full_name <- styles_to_search$`Full Name`[i]
-  IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
+  if (any(styles_to_search$Rename[i] == done)){
+    print(paste0(
+      "Ya se encuentra el archivo: ", styles_to_search$Rename[i], "; saltando procesamiento. Archivo: ", counting," de ",total_imgs
+    ))
+    counting <- counting + 1
+  } else {
+  full_name <- styles_to_search$Full_Path[i]
+  IMG <- image_read( path = full_name) |> image_trim(fuzz = 5) |> image_scale(tamaño)
   IMG <- image_composite(canvas, IMG, gravity = "Center")
   image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "JPEG", depth = "8")
   print(paste0(styles_to_search$Rename[i], "; procesado: ", counting," de ", total_imgs))
+  }
   counting <- counting + 1
-}
+  }
 
 #Busqueda de materiales, transformar, escribir y renombrar de acuerdo a UPC correspondiente
 #for (styles in styles_to_search$Material) {

@@ -1,4 +1,11 @@
 # Colecciones Alternativas ----
+library(tidyverse)
+library(data.table)
+library(DBI)
+library(tools)
+library(RSQLite)
+library(stringr)
+
 
 # Parametros globales ----
 extensiones_imagenes <- c("jpg","JPG","tif","tiff","png","jpeg")
@@ -49,6 +56,12 @@ guess_alt_materiales <- files_guess_alt %>%  separate(File_Name, into = c("Estil
 # Sustituir Variantes == NA, como variante de foto frontal
 guess_alt_materiales$Variante[is.na(guess_alt_materiales$Variante)] <- "F"
 
+#Elegir fotos siguientes como variantes del material
+
+
+
+# Seleccionar informacion para guardar en db
+
 guess_alt_materiales <- guess_alt_materiales %>% 
   mutate(Material = paste0(Estilo,"-",Color_Code)) %>% 
   select(c(
@@ -56,28 +69,29 @@ guess_alt_materiales <- guess_alt_materiales %>%
     "Estilo",    
     "Variante",
     "Full_Path",
-    "Album")) %>% filter(Variante != "ALT1") %>%  # Filtro aquellos con variante ALT1: foto con modelo
+    "Album")) %>%
   rename(Style_Code = "Estilo",
          Cara = "Variante",
          Coleccion = "Album") # Ordenado para concatenar con otros tablas listas de materiales
 
+
 # SQLite ----
 Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite") # db para lista de archivos
-dbWriteTable(Files.HB_Guess, "nCommerce", files_guess_alt, overwrite = TRUE)
+dbWriteTable(Files.HB_Guess, "Inventario.Alt.Files", files_guess_alt, overwrite = TRUE)
 dbDisconnect(Files.HB_Guess)
 
 SQLite.Guess_Materiales <- dbConnect(SQLite(), "db/guess_hb_materiales.sqlite") #Solo para lista de materiales disponibles
-dbWriteTable(SQLite.Guess_Materiales,"Inventario.Alt.Files", guess_alt_materiales, overwrite = TRUE)
+dbWriteTable(SQLite.Guess_Materiales,"nCommerce.Materiales", guess_alt_materiales, overwrite = TRUE)
 dbDisconnect(SQLite.Guess_Materiales)
 
 # Limpiar ambiente ----
-rm(comienzo,
-   commerce_general_dir,
-   extensiones_imagenes,
-   files_guess_alt,
-   guess_alt_materiales,
-   i,
-   lista_coleccion_alt_guess,
-   nCommerce_dir,
-   SQLite.Guess_Materiales,
-   Files.HB_Guess)
+#rm(comienzo,
+#   commerce_general_dir,
+#   extensiones_imagenes,
+#   files_guess_alt,
+#   guess_alt_materiales,
+#   i,
+#   lista_coleccion_alt_guess,
+#   nCommerce_dir,
+#   SQLite.Guess_Materiales,
+#   Files.HB_Guess)

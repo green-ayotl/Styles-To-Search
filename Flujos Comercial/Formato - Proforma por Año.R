@@ -24,17 +24,17 @@ library(DBI)
 library(RSQLite)
 
 # ---- Importación de información ----
-# Inventario: Materiales Signal
-SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
-inventario_signal.materiales <- dbReadTable(SQLite.Guess_HB, "Materiales.Signal")
-dbDisconnect(SQLite.Guess_HB)
+# Inventario Generales para Proforma
+SQLite.Guess_Materiales <- dbConnect(SQLite(), "db/guess_hb_materiales.sqlite") #Solo para lista de materiales disponibles
+Inventario.General <- dbReadTable(SQLite.Guess_Materiales, "Inventario.General")
+dbDisconnect(SQLite.Guess_Materiales)
 
-#Signal_Materiales <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Signal Materiales.xlsx"
+inventario_signal.materiales <- Inventario.General # Agregar a nombre utilizado anteriormente
 
 # Lista de precios
 SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
 lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios")
-colnames(lista_precios) <- gsub("\\.", " ", colnames(lista_precios))
+
 dbDisconnect(SQLite.Guess_HB)
 
 # Base de materiales para obtener UPC
@@ -54,22 +54,24 @@ Base_Materiales_UPC <- Base_Materiales_UPC %>% bind_rows(UPCs) #No necesita dist
 # Excel archivo Macro ----
 excel_macro <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Espacio/Excel Image in path/Excel_Place_Local_Pictures_In_Cell_Using_Formula_Hack_2607.xlsm"
 
-# ---- Cargar archivo excel - Lista de Precios ----
+# Filtros para  Lista de Precios ----
+
+# Departamento HB en Lista de precios
 departamento_hb_main <-"Handbags"
 departamento_hb_factory <- "Handbags Factory"
 
 precios <- lista_precios %>%
   select(c("Material",
-           "Descripción breve de estilo",
+           "Descripción.breve.de.estilo",
            "Temporada",
-           "Descripción de Temporada",
+           "Descripción.de.Temporada",
            "Año",
            "Departamento",
            "Clase",
-           "Sub Clase",
-           "Precio IB minorista"))
+           "Sub.Clase",
+           "Precio.IB.minorista"))
 
-precios_HB <- filter(precios, Departamento == departamento_hb_main | Departamento == departamento_hb_factory) #Only HB materials
+precios_HB <- filter(precios, Departamento %in% c(departamento_hb_main, departamento_hb_factory)) #Only HB materials
 
 # ---- Cargar archivo excel - Signal Materiales ----
 Signal_Handbags <- inventario_signal.materiales
@@ -108,7 +110,7 @@ año <- año_procesar #Seleccionar año para crear caratulas
 
 # Parámetros Carpetas ----
 #Carpetas objetivo, para guardar en onedrive _in order to copy to better path_
-dir_minis_year <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Proformas/"
+dir_minis_year <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Minis/"
 
 carpeta_destino <- paste0(dir_minis_year,año)
 
@@ -136,13 +138,12 @@ for (i in 1:nrow(lista_minis)) {
     ))
     skipped <- skipped + 1
   } else {
-  try({  
   IMG <- image_read(path = lista_minis$Full_Path[i]) %>%  
   image_trim() %>% 
   image_scale(200) %>% 
-  image_write(path = paste0(carpeta_destino,"/",lista_minis$Material[i],".jpg"))}, silent = TRUE)
+  image_write(path = paste0(carpeta_destino,"/",lista_minis$Material[i],".jpg"))
   print(paste0(lista_minis$Material[i],"; [",counting,"/",total, "] ; -Procesado-"))
-  Sys.sleep(5) #Disco almacenamiento se ocupa: descargar la imagen, escribirla y subirla, permite trabajar la cola de procesos
+  Sys.sleep(10) #Disco almacenamiento se ocupa: descargar la imagen, escribirla y subirla, permite trabajar la cola de procesos
   procesado <- procesado + 1
   }
   counting <- counting + 1
@@ -240,9 +241,11 @@ lista_tablas <- setNames(
 # Escribir formato proforma
 fecha_reporte <- format(as.Date(Sys.Date(), format = "%Y-%m-%d"), "%d.%m.%y")
 
-proforma_file <- paste0(dir_minis_year, año, " Bolsas Celdas Proforma ", fecha_reporte,".xlsx")
+carpeta_proforma <- paste0("C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Proformas/", año,"/")
 
-write_xlsx(lista_tablas, path = proforma_file)
+proforma_file <- paste0(año, " Bolsas Celdas Proforma ", fecha_reporte,".xlsx")
+
+write_xlsx(lista_tablas, path = paste0(carpeta_proforma,proforma_file))
 print("Reportes Creados")
 
 # Run-em
@@ -265,9 +268,12 @@ tabla_faltantes <- paste0("Materiales.Faltantes_",año_procesar)
 SQLite.Proformas <- dbConnect(SQLite(), "db/proforma_anuales.sqlite")
 dbWriteTable(SQLite.Proformas, tabla, proforma, overwrite = TRUE) # Formato proforma
 dbWriteTable(SQLite.Proformas, tabla_faltantes, Materiales_no_picture, overwrite = TRUE) # Lista Materiales Faltantes
+
 # Escribir tabla de UPC en SQLite guess_hb
 SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
-dbWriteTable(SQLite.Guess_HB, "Materiales.UPC", Base_Materiales_UPC)
+
+dbWriteTable(SQLite.Guess_HB, paste0("Materiales.UPC.",año), Base_Materiales_UPC, overwrite = TRUE)
+dbWriteTable(SQLite.Guess_HB, paste0("Materiales.Faltantes.",año), Materiales_no_picture, overwrite = TRUE)
 
 dbDisconnect(SQLite.Proformas)
 dbDisconnect(SQLite.Guess_HB)

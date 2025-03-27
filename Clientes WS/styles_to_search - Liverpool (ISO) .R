@@ -21,38 +21,38 @@ peso <- 500
   # EAN_0 : 3/4, EAN_1 : Frontal, EAN_2 : Back, EAN_4 : Superior/interna, (...)
 
 # Ingesta de información ----
-carpeta_final <- gsub("\\\\","/",
-                      choose.dir(caption = "Introduce la ruta donde se guardaran los archivos: "))
+carpeta_final <- gsub("\\\\","/", choose.dir(caption = "Introduce la ruta donde se guardaran los archivos: ")) |> paste0("/")
+
+#carpeta_final <- # Para Carpeta persistente
 
 styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Liverpool - IMG") %>%  
-  filter(Cara == "F" | Cara == "Q") |> mutate(Rename = paste0(Material," (ISO)"))
+  filter(Liverpool == "[Material] (iso)")
 
 styles_to_ISO <- tibble(Material = unique(styles_to_search$Material),
                         to_ISO = NA) %>% mutate(Rename = paste0(Material," (ISO)")) %>% mutate(Style_Code = str_extract(Material,"^[^-]+"))
-
-for (i in styles_to_ISO$Material) {
-  if (any(styles_to_search$Material == i & styles_to_search$Cara == "Q")) { #Si hay Cara Q, dejar el archivo Q
-    #Asignar archivo con cara Q al material
-    styles_to_ISO$to_ISO[which(styles_to_ISO$Material == i)] <- filter(styles_to_search, Material == i & Cara == "Q")$Full_Path
-  } else { #Si no hay Cara Q del material, asignar archivo Cara F
-    #Asignar archivo con cara F al material
-    styles_to_ISO$to_ISO[which(styles_to_ISO$Material == i)] <- filter(styles_to_search, Material == i & Cara == "F")$Full_Path
-  }
-}
+# Legacy ---
+#for (i in styles_to_ISO$Material) {
+#  if (any(styles_to_search$Material == i & styles_to_search$Cara == "Q")) { #Si hay Cara Q, dejar el archivo Q
+#    #Asignar archivo con cara Q al material
+#    styles_to_ISO$to_ISO[which(styles_to_ISO$Material == i)] <- filter(styles_to_search, Material == i & Cara == "Q")$Full_Path
+#  } else { #Si no hay Cara Q del material, asignar archivo Cara F
+#    #Asignar archivo con cara F al material
+#    styles_to_ISO$to_ISO[which(styles_to_ISO$Material == i)] <- filter(styles_to_search, Material == i & Cara == "F")$Full_Path
+#  }
+#}
 
 # Para obtener medidas desde W&M
 styles_from_search <- unique(styles_to_search$Style_Code)
 
-Weights.Materials <- read_excel(path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M.xlsx") %>% 
-  filter(Style %in% styles_from_search) %>%  select(c(
-    "Fuente",
-    "Style",
-    "Style Group Name",
-    "Style Name",
-    "Dimensions: Largo",
-    "Dimensions: Ancho",
-    "Dimensions: Alto"
-  ))
+Weights.Materials <- read_excel(path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M.xlsx", sheet = "W&M.Resumido") %>% 
+  filter(style_code %in% styles_from_search) %>% select(c(
+    "fuente",
+    "style_code",
+    "style_group_name",
+    "dimensiones.largo",
+    "dimensiones.ancho",
+    "dimensiones.alto"
+  )) %>% distinct(style_code, .keep_all = TRUE)
 
 #Procesandor de imagnes Isometricas ----
 
@@ -60,16 +60,11 @@ canvas <- image_blank(width = ancho, height = alto, color = "white")
 counting <- 1
 total_imgs <- nrow(styles_to_ISO)
 
-for (i in 1:nrow(styles_to_ISO)) {
-  full_name <- styles_to_ISO$to_ISO[i]
+for (i in 1:nrow(styles_to_search)) {
+  full_name <- styles_to_search$Full_Path[i]
   IMG <- image_read( path = full_name) |> image_trim() |> image_scale(tamaño)
-
-  #Agregar valores ISOmetricos
-    #Filtar Weights.Materials por el estilo, ordenar Fuente de mayor a menos y slice(1)
-    #Tomar los valores e image_composite, a la derecha el alto, arriba el largo y abajo-izquierda el ancho
-  
   IMG <- image_composite(canvas, IMG, gravity = "Center")
-  image_write(IMG, path = paste0(carpeta_final,"/",styles_to_ISO$Rename[i], extension), format = "jpeg" , density = dpi, compression = "JPEG", depth = "8")
+  image_write(IMG, path = paste0(carpeta_final,styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "JPEG", depth = "8")
   print(paste0(styles_to_search$Rename[i], "; procesado: ", counting," de ", total_imgs))
   counting <- counting + 1
   Sys.sleep(2)
@@ -97,7 +92,7 @@ imagenes_liverpool <- function(carpeta_final,tabla_archivos,tabla_especificacion
   #Impresora
   for (i in 1:nrow(styles_to_search)) {
     full_name <- styles_to_search$`Full Name`[i]
-    IMG <- image_read( path = full_name) |> image_trim(fuzz = 20) |> image_scale(tamaño)
+    IMG <- image_read( path = full_name) |> image_trim() |> image_scale(tamaño)
     IMG <- image_composite(canvas, IMG, gravity = "Center")
     image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "JPEG", depth = "8")
     Sys.sleep(2) #Mimir pausa para que no explote la computadora

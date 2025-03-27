@@ -17,10 +17,10 @@ extension <- ".jpg"
 #Lista de archivos
 styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Amazon - IMG")
 
-#Para comprobar si ya existe un valor de carpeta final, se debe asignar vacio, si no existe, solo dara error la funcion exits()
 readline( prompt = "Seleccionar carpeta donde guardar [Enter]")
 carpeta_final <- gsub("\\\\","/",
                         choose.dir(caption = "Introduce la ruta donde se guardaran los archivos: "))
+
 
 print(paste0(
   "Se encontro un total de ",
@@ -35,8 +35,8 @@ readline(
   prompt = "[Enter] para comenzar a procesar"
 )
 
-# ----
-# IMG
+# Procesador imagenes ----
+
 canvas <- image_blank(width = ancho, height = alto, color = "white")
 counting <- 1
 indice_inicio <- 1
@@ -53,17 +53,20 @@ for (i in indice_inicio:total_imgs) {
     counting <- counting + 1
   } else {
   full_name <- styles_to_search$Full_Path[i]
-  IMG <- image_read( path = full_name) |> image_trim() |> image_scale(tamaño)
+  IMG <- image_read( path = full_name) |> image_trim(fuzz = 10) |> image_scale(tamaño)
   IMG <- image_composite(canvas, IMG, gravity = "Center")
   IMG <- image_convert(IMG, colorspace = "RGB")
   image_write(IMG, path = paste0(carpeta_final,"/",styles_to_search$Rename[i], extension), format = "jpeg" , density = dpi, compression = "LosslessJPEG", depth = "16")
   print(paste0(
     "Material: ",styles_to_search$Material[i],"; archivo procesado: ",styles_to_search$Rename[i], "; procesado: ", counting," de ", total_imgs))
   counting <- counting + 1
-  Sys.sleep(2)
+  Sys.sleep(4)
 }}
 
-#Archivo ZIP - Testing
+# Comprimir imagenes para subir a Amazon en Lote ----
+
+#Archivo ZIP
+
 comprimir <- readline( prompt = "Comprimir imagenes en archivo ZIP [Y]")
 if(comprimir == "Y") {
   #archivo_zip <- gsub("\\\\","/",

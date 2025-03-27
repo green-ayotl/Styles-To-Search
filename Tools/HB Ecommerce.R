@@ -4,11 +4,11 @@ library(readxl)
 library(dplyr)
 library(magick)
 
-#------
-#Parametros
+
+# Parametros Picture Guess ECOM ----
 tamaño <- "1600x2132" 
-tamaño_canvas_ancho <- "1600"
-tamaño_canvas_alto <- "2132"
+tamaño_canvas_ancho <- "2400" #Imagen alargada a lo alto
+tamaño_canvas_alto <- "3168"
 fondo <- "#dedede"
 extension <- ".jpg"
 

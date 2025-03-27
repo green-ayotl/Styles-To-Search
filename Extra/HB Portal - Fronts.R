@@ -3,7 +3,7 @@
 
 #Información necesaria
   # Lista de Precios
-
+  # Inventario General
 
 # ---- Activar librerias 
 library(dplyr)
@@ -20,7 +20,7 @@ imagenes_signal <- "C:/Users/ecastellanos.ext/OneDrive - Axo/IMAGENES SIGNAL/"
 
 # ---- Cargar información: Lista de Precios ----
 
-SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite") #Only handbags materials
 lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios") # AXO_pc
 dbDisconnect(SQLite.Guess_HB)
 
@@ -29,15 +29,16 @@ SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
 Inventario.Signal.Materiales <- dbReadTable(SQLite.Guess_HB, "Materiales.Signal") %>% 
   filter(Cara == "F" | Cara == "RZ") %>% 
   select(c(Material,
-           Full_Path))
+           Full_Path)) %>% filter(!is.na(Material))
+
 dbDisconnect(SQLite.Guess_HB)
 
 # Filtro Lista de Precios ----
 
 precios <- lista_precios %>% 
   select(c(Material, Temporada, Departamento, Año)) %>% 
-  filter(Año %in% años_exportacion) %>% 
-  filter(Departamento %in% departamento_handbags)
+  filter(Año %in% años_exportacion) #%>% ya no 
+#  filter(Departamento %in% departamento_handbags) #already filtered
 
 # Unir Lista Precios (año procesar) con Inventario Materiales ----
 
@@ -102,14 +103,14 @@ for (i in 1:length(años_exportacion)) {
         
     if (any(lista_carpeta == materiales_anuales$Material[h])) {
       print(paste0(
-        "Material: ", materiales_anuales$Material[h], " -Omitido- [",contador,"/",totales,"]"
+        "Material: ", materiales_anuales$Material[h], " -Omitido- [",contador,"/",totales,"] : ", temp_year
       ))
     } else {
       
       file.copy(from = materiales_anuales$Full_Path[h],
                 to = materiales_anuales$Destino[h])
       print(paste0(
-        "Material: ", materiales_anuales$Material[h], " -Copiado- [",contador,"/",totales,"]"        
+        "Material: ", materiales_anuales$Material[h], " -Copiado- [",contador,"/",totales,"] : ", temp_year
       ))
       Sys.sleep(0.1)
     }
@@ -117,5 +118,13 @@ for (i in 1:length(años_exportacion)) {
 
   }
 }
+
+
+# Info final ----
+# Materiales procesado por años
+print("Materiales procesador por año: ")
+
+print(filter(materiales, Año %in% años_exportacion) %>% count(Año))
+
 
 # End of script

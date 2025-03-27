@@ -2,6 +2,7 @@ library(tidyverse)
 library(data.table)
 library(DBI)
 library(RSQLite)
+library(stringr)
 
 # Extensión de archivos a listar
 
@@ -16,6 +17,10 @@ ecom_files <- data.table(Full_Path = list.files(ecom_guess_dir, pattern = extens
 
 # Limpieza de duplicados con referencia: "MXSCHLC"
 ecom_files <- ecom_files[!grepl("MXSCHLC", File.Name), ]
+ecom_files <- ecom_files[!grepl("MXSCHCL", File.Name), ]
+
+# Limpieza archivos no utiles (En flujos intermedio de ECOM Guess)
+ecom_files <- ecom_files[!grepl("MXSCHCL", File.Name), ]
 
 # Busqueda de Materiales en Ecom Guess ----
 
@@ -29,7 +34,7 @@ dbDisconnect(SQLite.Guess_HB)
 
 
 #Crear tabla para concatenar encontrados
-ecom_guess_materiales <- data.table(Full_Path = as.character(),
+ecom_guess_materiales_identificacion <- data.table(Full_Path = as.character(),
                                     Album = as.character(),
                                     File.Name = as.character(),
                                     Material = as.character())
@@ -37,28 +42,11 @@ ecom_guess_materiales <- data.table(Full_Path = as.character(),
 #contadores
 total_ecom_guess <- nrow(materiales_hb)
 procesado_ecom_guess <- 1
-#Legacy
-# Loop buscador de materiales desde Precios.HB en la carpeta de ecom guess
-#for (i in 1:nrow(materiales_hb)) {
-#  if (any(str_detect(ecom_files$File.Name, materiales_hb$Material[i]))) {
-#    material_match <- ecom_files %>% filter(str_detect(ecom_files$File.Name, materiales_hb$Material[i])) %>% 
-#      mutate(Material = materiales_hb$Material[i])
-#    ecom_guess_materiales <- rbind(ecom_guess_materiales,material_match)
-#    print(paste0(
-#      "Material: ", materiales_hb$Material[i]," encontrado [",procesado_ecom_guess,"/",total_ecom_guess,"]" 
-#    ))
-#  } else {
-#    print(paste0(
-#      "Material: ",materiales_hb$Material[i]," no encontrado [",procesado_ecom_guess,"/",total_ecom_guess,"]"
-#    ))
-#  }
-#  procesado_ecom_guess <- procesado_ecom_guess + 1
-#}
 
-# Better loop para busqueda de materiales en ecom_files
+
 for (i in 1:nrow(materiales_hb)) {
   material_match <- ecom_files %>% filter(str_detect(ecom_files$File.Name, materiales_hb$Material[i])) %>% mutate(Material = materiales_hb$Material[i])
-  ecom_guess_materiales <- rbind(ecom_guess_materiales,material_match)
+  ecom_guess_materiales_identificacion <- rbind(ecom_guess_materiales,material_match)
   ifelse(nrow(material_match) != 0,
          print(paste0(
            "Material: ", materiales_hb$Material[i]," encontrado [",procesado_ecom_guess,"/",total_ecom_guess,"]" 
@@ -69,6 +57,14 @@ for (i in 1:nrow(materiales_hb)) {
 
   procesado_ecom_guess <- procesado_ecom_guess + 1
 }
+
+ecom_guess_materiales <- ecom_guess_materiales_identificacion %>% 
+  mutate(ISO = ifelse(str_detect(File.Name, "ISO"), "ISO", "-")) %>% 
+  mutate(Principal_ecom = ifelse(str_detect(File.Name, "PLANO"), "Principal", "-")) %>% 
+  mutate(ALT1 = ifelse(str_detect(File.Name, "ALT1"), "ALT1", "-")) %>% 
+  mutate(ALT2 = ifelse(str_detect(File.Name, "ALT2"), "ALT2", "-")) %>% 
+  mutate(ALT3 = ifelse(str_detect(File.Name, "ALT3"), "ALT3", "-")) %>% 
+  mutate(ALT4 = ifelse(str_detect(File.Name, "ALT4"), "ALT4", "-"))
 
 # SQLite ----
 

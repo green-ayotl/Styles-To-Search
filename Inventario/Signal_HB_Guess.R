@@ -6,6 +6,14 @@
     #Signal.Whole_list: full join con listado de colores
     #Signal.Materiales: Lista de materiales identificados en Signal
 
+# Librerias
+library(readxl)
+library(tidyverse)
+library(data.table)
+library(tools)
+library(DBI)
+library(RSQLite)
+
 # Parametros generales ----
 extensiones_imagenes <- c("jpg","JPG","tif","tiff","png","jpeg")
 
@@ -86,18 +94,18 @@ dbDisconnect(SQLite.Guess_Materiales)
 dbDisconnect(SQLite.Colores)
 
 # CSV export ----
-
-write.csv(Signal.Materiales, file = "db/Signal_Materiales.csv", row.names = FALSE, na = "", fileEncoding = "UTF-8")
+# Drop, ya hay script para concatenar/unir/limpiar informacion para exportar
+#write.csv(Signal.Materiales, file = "db/Signal_Materiales.csv", row.names = FALSE, na = "", fileEncoding = "UTF-8")
 
 # Limpiar ambiente ----
-rm(colores,
-   Colores.No_Code,
-   Colores.no_material,
-   colores_archivo,
-   extensiones_imagenes,
-   Files.HB_Guess,
-   Signal.Materiales,
-   Signal.Whole_list,
-   Signal_Bolsas,
-   SQLite.Colores,
-   SQLite.Guess_Materiales)
+#rm(colores,
+#   Colores.No_Code,
+#   Colores.no_material,
+#   colores_archivo,
+#   extensiones_imagenes,
+#   Files.HB_Guess,
+#   Signal.Materiales,
+#   Signal.Whole_list,
+#   Signal_Bolsas,
+#   SQLite.Colores,
+#   SQLite.Guess_Materiales)

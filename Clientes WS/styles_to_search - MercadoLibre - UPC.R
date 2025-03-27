@@ -26,13 +26,19 @@ library(readr)
 
 # ------
 # Requerimientos Meli
-tamaño <- "1600x1600"
-alto <- "1600" # Canvas size
-ancho <- "1600" #Canvas size
-fuzz <- 20
-dpi <- 72
-extension <- ".jpg"
-calidad <- 75
+
+especificaciones <- read_excel("Styles To Search - General.xlsx", sheet = "Especificaciones") %>% 
+  filter(Cliente == "MercadoLibre") %>% slice(1)
+
+tamaño <- especificaciones$resolución
+alto <- especificaciones$alto.imagen # Canvas size
+ancho <- especificaciones$ancho.imagen #Canvas size
+dpi <- especificaciones$densidad
+extension <- especificaciones$extension.final
+calidad <- especificaciones$calidad
+gravedad <- especificaciones$gravedad
+
+fuzz <- 10
 
 # - Archivo lista de estilos -
   # Encabezados (columnas): [Material] y [Codigo UPC]: Datos únicos, evitar repetición de Materiales y UPC
@@ -63,29 +69,29 @@ carpeta_final <- gsub("\\\\","/",
 
 canvas <- image_blank(width = ancho, height = alto, color = "white")
 counting <- 1
+UPC_unicos <- unique(styles_to_search$Codigo_UPC)
+
 
 #Busqueda de materiales, creacion de carpetas UPCs y copiar a los mismos
-for (i in 1:nrow(styles_to_search)) {
+for (i in 1:length(UPC_unicos)) {
 
   #Seleccionar Codigo UPC
-  upc_single <- as.character(styles_to_search$Codigo_UPC[i])
+  upc_single <- as.character(UPC_unicos[i])
   upc_folder <- paste0(carpeta_final,"/", upc_single)
   
   #Crear directorio con el UPC donde quedara las imágenes
   dir.create(upc_folder, showWarnings = FALSE)
   print(paste0("Carpeta creada: ", upc_single))
   
-  #Seleccionar nuevo directorio
-  carpeta_destino <- upc_folder #Paso repetido repetido
-  
-  info_mat <- styles_to_search %>% filter(styles_to_search$Codigo_UPC == styles_to_search$Codigo_UPC[i])
+  #Seleccionar materiales de tal UPC
+  info_mat <- styles_to_search %>% filter(Codigo_UPC == UPC_unicos[i])
   
   #Editar imagenes
   for (h in 1:nrow(info_mat)){
-    IMG <- image_read( path = info_mat$Full_Path[h]) #Ruta de imagen a editar
-    IMG <- image_trim(IMG, fuzz = fuzz) |> image_scale(tamaño)
-#    IMG <- image_composite(canvas, IMG, gravity = "Center")
-    image_write(IMG, path = paste0(carpeta_destino,"/",as.character(info_mat$Rename[h]),".jpg"), density = dpi, quality = calidad)
+    IMG <- image_read(path = info_mat$Full_Path[h]) %>%  #Ruta de imagen a editar
+      image_trim(fuzz = 5) %>%  image_scale(tamaño)
+    IMG <- image_composite(canvas, IMG, gravity = "Center")
+    image_write(IMG, path = paste0(upc_folder,"/",as.character(info_mat$Rename[h]),".jpg"), density = dpi, quality = calidad)
     print(paste0(
       "En UPC: ", upc_single, " ; IMG: ", info_mat$Control[h]
     ))
