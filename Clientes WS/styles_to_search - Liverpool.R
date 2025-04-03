@@ -5,6 +5,8 @@
 library(readxl)
 library(magick)
 library(tidyr)
+library(stringr)
+library(dplyr)
 
 #---- 
 #Parametros Cliente

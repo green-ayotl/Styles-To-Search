@@ -24,9 +24,8 @@ styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Palac
 
 #readline( prompt = "Seleccionar carpeta donde guardar [Enter]")
 
-#carpeta_final <- gsub("\\\\","/",
-#                      choose.dir(caption = "Introduce la ruta donde se guardaran los archivos: "))
-carpeta_final <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Espacio/PalacioHierro Rich Pendientes Bandeja/Imagenes"
+carpeta_final <- gsub("\\\\","/",
+                      choose.dir(caption = "Introduce la ruta donde se guardaran los archivos: "))
 
 print(paste0(
   "Se encontro un total de ",
