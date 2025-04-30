@@ -1,4 +1,4 @@
-# Descripcción tablas
+# Descripción tablas
   #Colores: Archivo excel de codigo de color y color proveedor
     # Colores.No_Code: Color proveedor sin codigo de color
     # Colores.no_material: Nombre de color sin utilizar
@@ -6,26 +6,31 @@
     #Signal.Whole_list: full join con listado de colores
     #Signal.Materiales: Lista de materiales identificados en Signal
 
-# Librerias
+
+# Librerias ----
 library(readxl)
 library(tidyverse)
 library(data.table)
 library(tools)
 library(DBI)
 library(RSQLite)
+library(here)
 
-# Parametros generales ----
-extensiones_imagenes <- c("jpg","JPG","tif","tiff","png","jpeg")
+# Parámetros globales ----
+source(here("Global.R"))
 
-colores_archivo <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/Colores_Guess_Signal.xlsx"
+# Parámetros generales ----
+extensiones_imagenes <- global_config$archivo_imagen %>% as.vector()
+
+colores_archivo <- global_config$colores
 
 # Cargar Lista Archivos - Signal Guess ----
 
-Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite")
+Files.HB_Guess <- dbConnect(SQLite(), here("db", "file_list.sqlite"))
 Signal_Bolsas <- dbReadTable(Files.HB_Guess, "Signal") %>% as.data.table()
 dbDisconnect(Files.HB_Guess)
 
-#Limpieza: Extensión de archivos solo imágenes
+#Limpieza: Extensión de archivos solo imágenes ----
 Signal_Bolsas <- filter(Signal_Bolsas, File_Ext %in% extensiones_imagenes)
 
 # Archivo Colores Signal ----
@@ -80,11 +85,10 @@ Colores.No_Code <- Signal.Whole_list %>%
 
 # SQLite ----
 
-SQLite.Guess_Materiales <- dbConnect(SQLite(), "db/guess_hb_materiales.sqlite") #Solo para lista de materiales disponibles
+SQLite.Guess_Materiales <- dbConnect(SQLite(), here("db","guess_hb_materiales.sqlite")) #Solo para lista de materiales disponibles
 dbWriteTable(SQLite.Guess_Materiales, "Signal.Materiales", Signal.Materiales, overwrite = TRUE)
 
-
-SQLite.Colores <- dbConnect(SQLite(), "db/Colores.sqlite") # Todo lo relacionado a la lista de colores
+SQLite.Colores <- dbConnect(SQLite(), here("db","Colores.sqlite")) # Todo lo relacionado a la lista de colores
 dbWriteTable(SQLite.Colores, "Lista.Colores.Signal", colores, overwrite = TRUE)
 dbWriteTable(SQLite.Colores, "Colores.No.material", Colores.no_material, overwrite = TRUE)
 dbWriteTable(SQLite.Colores, "Colores.Names.without.code", Colores.No_Code, overwrite = TRUE)

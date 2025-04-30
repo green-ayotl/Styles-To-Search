@@ -1,0 +1,80 @@
+# Archivo de configuración global para el proyecto
+  # Instrucciones
+  
+  # Colocar la ruta de carpeta o archivo en la maquina donde se procesara el proyecto
+      # Al copiar y pegar ruta de dirección de archivos, utilizar "/", no "\"
+      # Todas las carpetas deben terminar en "/"
+      # La ruta debe estar entre dobles comillas [ " " ]
+      
+  # Sintaxis: Uilizar simbolo de gato o hash (#) para marcar comentarios al inicio de la fila
+  
+# Rutas de carpetas y archivos para los flujos de trabajo del proyecto
+
+# Rutas de carpetas de activos digitales ----
+  
+Signal_Sharefile: "S:/Carpetas/" # Disco default de Sharefile
+
+nCommerce_dir: "A:/eduar/OneDrive - Axo/Imágenes/nCommerce_Handbags/"
+  # Activos digitales desde Ncommerce Guess
+
+commerce_general_dir: "A:/eduar/OneDrive - Axo/Imágenes/Commerce_General/"
+  # Activos digitales desde web/shooting internos
+  
+sharepoint_guess.ecom: "Directorio de carpeta de flujos GUESS ECOM"
+
+# Datos comerciales - Directorios ------
+  
+directorio_lista_precios: "A:/eduar/OneDrive - Axo/HandBags/Lista de Precios/"
+  # Carpeta donde se guardan los ultimos archivos de lista de precios
+  # Desde Chat "COMERCIAL"
+
+directorio_lista_materiales: "A:/eduar/OneDrive - Axo/HandBags/Base de Materiales/"
+  # Carpeta donde se guardan los ultimos archivos de lista de materiales
+  # Desde Chat "COMERCIAL"
+
+directorio_archivos_WM: "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M/"
+  # Carpeta donde se encuentran los archivos W&M de cada temporada proporcionada por Signal
+
+directorio_minis: "Directorio imagenes minuatura frontales para proformas"
+  # Carpeta donde se guardara por año, minuatura frontales de materiales
+  
+directorio_minis_minimo: "Directorio de imagenes miniatura, para tener minima dirección del archivo"
+
+directorio_proformas: "Directorio para guardar las proformas procesadas"
+
+#Información General - Archivos
+excel_WM: "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M.xlsx" # Not sure -------
+  
+colores: "A:/eduar/OneDrive - Axo/HandBags/Signal/Colores_Guess_Signal.xlsx"
+
+upc_faltantes_excel: "Dirección de archivo excel con Material-UPC desde SAP, que aun no se encuentran en Base de Materiales"
+
+excel_picture.in.cel: "Dirección de archivo excel, con macro para importar imagenes"
+
+# Parametros Flujos finales -----
+
+
+
+# Tipos de archivo imagenes en las busquedas
+
+archivo_imagen:
+  - jpg
+  - jpeg
+  - jfif
+  - pjpeg
+  - pjp
+  - JPG
+  - tif
+  - tiff
+  - png
+  - webp
+  
+# Denominadores en lista de precios para los materiales de Bolsas Wholesale
+departamento_bolsas: 
+  - Handbags
+  - Handbags Factory
+  
+# Output ---------------------
+directorio_exportar_inventario_general: "A:/eduar/OneDrive - Axo/HandBags/Inventario/"
+
+#Siempre dejar la ultima fila en blanco

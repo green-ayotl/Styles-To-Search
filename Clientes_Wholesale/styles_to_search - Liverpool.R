@@ -1,15 +1,14 @@
-# Liverpool
+# Liverpool con divisor de Imágenes ISOmetricas
 
-#----
-#Librerias necesarias
+#Librerias necesarias ----
 library(readxl)
 library(magick)
 library(tidyr)
 library(stringr)
 library(dplyr)
 
-#---- 
-#Parametros Cliente
+##Parámetros Cliente ---- 
+
 tamaño <- "940x1215"
 alto <- "1215" # Canvas size
 ancho <- "940" #Canvas size
@@ -24,7 +23,7 @@ carpeta_final <- gsub("\\\\","/", choose.dir(caption = "Introduce la ruta donde 
 
 #carpeta_final <- # Para Carpeta persistente
 
-styles_to_search <- read_excel("Styles To Search - General.xlsx", sheet = "Liverpool - IMG") %>% 
+styles_to_search <- read_excel("Clientes_Wholesale/Styles To Search - General.xlsx", sheet = "Liverpool - IMG") %>% 
   filter(str_detect(Descripcion, "ISOmetrica", negate = TRUE)) # Quitar elemento ISO de lista, para trabajar en script separado
 
 #----

@@ -1,15 +1,24 @@
+# Inicio ----
+  # Búsqueda de activos digitales en el flujo de trabajo de Guess Ecom para el departamento de bolsas mainline
+
+# Librerias ----
+
 library(tidyverse)
 library(data.table)
 library(DBI)
 library(RSQLite)
 library(stringr)
+library(here)
 
+# Parámetros Globales ----
+source(here("Global.R"))
+
+# Parámetros Flujo ----
 # Extensión de archivos a listar
+extensiones_imagenes <- global_config$archivo_imagen %>% as.vector()
 
-extensiones_imagenes <- c("jpg","JPG","tif","tiff","png","jpeg")
-
-# Busqueda especializada en eCom Guess ----
-ecom_guess_dir <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Ecommerce Guess/"
+# Búsqueda especializada en eCom Guess ----
+ecom_guess_dir <- global_config$sharepoint_guess.ecom
 
 # Crear lista de archivos -> string match desde lista de precios en el nombre del archivo, identificar materiales en la carpeta de ecom guess
 ecom_files <- data.table(Full_Path = list.files(ecom_guess_dir, pattern = extensiones_imagenes, full.names = TRUE, recursive = TRUE),
@@ -25,7 +34,7 @@ ecom_files <- ecom_files[!grepl("MXSCHCL", File.Name), ]
 # Busqueda de Materiales en Ecom Guess ----
 
 # Cargar Lista de materiales para bolsas
-SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+SQLite.Guess_HB <- dbConnect(SQLite(), here("db","guess_hb.sqlite"))
 materiales_hb <- dbReadTable(SQLite.Guess_HB, "Lista.Precios") %>% 
   filter(Departamento == "Handbags") %>% select(c("Material", "Año")) %>% #Solo Mainline, test realizado: no material de HB Factory encontrado
   arrange(Año) %>%  
@@ -68,13 +77,12 @@ ecom_guess_materiales <- ecom_guess_materiales_identificacion %>%
 
 # SQLite ----
 
-Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite") # db para lista de archivos
+Files.HB_Guess <- dbConnect(SQLite(), here("db","file_list.sqlite")) # db para lista de archivos
 dbWriteTable(Files.HB_Guess, "ECOM.Guess", ecom_files)
 dbDisconnect(Files.HB_Guess)
 
-SQLite.Guess_Materiales <- dbConnect(SQLite(), "db/guess_hb_materiales.sqlite") #Solo para lista de materiales disponibles
+SQLite.Guess_Materiales <- dbConnect(SQLite(), here("db","guess_hb_materiales.sqlite")) #Solo para lista de materiales disponibles
 dbWriteTable(SQLite.Guess_Materiales, "ECOM.Guess.Materiales", ecom_guess_materiales)
 dbDisconnect(SQLite.Guess_Materiales)
 
 # Limpiar ambiente ----
-

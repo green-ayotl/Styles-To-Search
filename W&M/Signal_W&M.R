@@ -7,11 +7,14 @@ library(readxl)
 library(utils)
 library(DBI)
 library(RSQLite)
+library(here)
 
+# Parametros globales ----
+source(here("Global.R"))
 
 # Parametros: Archivos W&M, Master files & temp files
 
-carpeta_wm <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M/"
+carpeta_wm <- global_config$directorio_archivos_WM
 archivos_wm <- list.files(path = carpeta_wm, pattern = ".xlsx", full.names = TRUE)
 
 # Construcción tabla: información relevante ----
@@ -62,26 +65,26 @@ for (files in archivos_wm) {
 # Limpieza de columnas Dimensiones: 
     #tipos incorrectos
 
-# Leer W&M: style_code: llenado manual y concatenar 
+# Leer W&M: style_code: llenado manual y concatenar ----
 
-wm_file <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M.xlsx"
-
-wm_info.faltante <- read_xlsx(wm_file, sheet = "styles_no_info")
-
-
+#Circular references
+#wm_file <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M.xlsx"
+#
+#wm_info.faltante <- read_xlsx(wm_file, sheet = "styles_no_info")
+#
 
 # Exportar CSV para archivo W&M ----
 
-archivo.wm.resumido <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/W&M_limpio.csv"
+archivo.wm.resumido <- here("Output/CSV","W&M_limpio.csv")
 
 write.csv(peso.materiales, file = archivo.wm.resumido, row.names = FALSE, na = "")
 
 # Leer: Lista de precios ----
-lista.precios <- dbConnect(SQLite(), "db/guess_hb.sqlite") %>% dbReadTable("Lista.Precios.Full")
+lista.precios <- dbConnect(SQLite(), here("db","guess_hb.sqlite")) %>% dbReadTable("Lista.Precios.Full")
 #dbDisconnect()
 
 # Filtrar HB
-materiales.HB <- filter(lista.precios, Departamento == "Handbags" | Departamento == "Handbags Factory") %>% 
+materiales.HB <- filter(lista.precios, Departamento %in% global_config$departamento_bolsas) %>% 
   mutate(style_code = str_sub(Material, start = 1, end = str_locate(Material, "-")[1]-1)) %>% 
   select(c("Material",
            "style_code",
@@ -112,7 +115,7 @@ wm.hb[,dimensiones.alto := as.numeric(dimensiones.alto)]
 año.curso <- year(Sys.Date())
 
 # Exportar información
-csv.styles.no.info <- "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Signal/styles_no_info.csv"
+csv.styles.no.info <- here("Output/CSV","styles_no_info.csv")
 
 # Obtener tabla de codigo de estilo con información faltante
 season <- materiales.HB %>% filter(Año == año.curso) %>%
@@ -126,10 +129,9 @@ season <- materiales.HB %>% filter(Año == año.curso) %>%
            "Departamento")) %>% 
   write.csv(file = csv.styles.no.info, row.names = FALSE)
 
-# Exportar a csv para W&M
+# Exportar a csv para W&M --- # To do ---
   # 2 tablas, 
     # uno con columanas valores categórico #solo analisis interno
     # uno con columnas valores numéricos
       # Desglosado por material
       # Desglosado por style
-

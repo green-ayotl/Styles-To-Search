@@ -1,3 +1,4 @@
+# PREFACE ----
 # Transformar imagenes para utilizar como miniaturas, para uso en reportes proforma en excel
   ## Utiliza 4 fuentes de información
     ## Inventario de Materiales sincronizado de signal
@@ -7,7 +8,10 @@
 # Al teminar el script, abre los archivos para terminar manualmente el formato de reporte
 # Archivo Output: .../Imágenes/Minis/ "año seleccionado" 'Bolsas Celdas Proforma' -Fecha actual-.xlsx
 
-# To-Do: Utilizar información de ultimo reporte creado para rellanar información de nuevo reporte a crear
+# To-Do:1: Utilizar información de ultimo reporte creado para rellanar información de nuevo reporte a crear
+  #2 : Creación y selección de carpetas para miniaturas para la proforma, tanto temporal como carpeta con ruta minima
+      # Utilizar la ruta mínima, en una sola carpeta, no separar por año
+  #3 : Calida de vida: Cambiar a tablas previamente limpias/procesadas, no manipular en este script
 
 # Parámetros ----
 
@@ -22,43 +26,44 @@ library(tidyverse)
 library(writexl)
 library(DBI)
 library(RSQLite)
+library(here)
+
+# Global Config ----
+source(here("Global.R"))
 
 # ---- Importación de información ----
 # Inventario Generales para Proforma
-SQLite.Guess_Materiales <- dbConnect(SQLite(), "db/guess_hb_materiales.sqlite") #Solo para lista de materiales disponibles
+SQLite.Guess_Materiales <- dbConnect(SQLite(), here("db","guess_hb_materiales.sqlite")) #Solo para lista de materiales disponibles
 Inventario.General <- dbReadTable(SQLite.Guess_Materiales, "Inventario.General")
 dbDisconnect(SQLite.Guess_Materiales)
 
 inventario_signal.materiales <- Inventario.General # Agregar a nombre utilizado anteriormente
 
 # Lista de precios
-SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+SQLite.Guess_HB <- dbConnect(SQLite(), here("db","guess_hb.sqlite"))
 lista_precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios")
-
 dbDisconnect(SQLite.Guess_HB)
 
 # Base de materiales para obtener UPC
-SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
-Base_Materiales_UPC <- dbReadTable(SQLite.Guess_HB, "Base.Materiales") %>% 
-  select(c("NUMERO_MATERIAL",
-           "CODIGO")) %>% 
-  rename(Material = "NUMERO_MATERIAL",
-         UPC = "CODIGO")
+SQLite.Guess_HB <- dbConnect(SQLite(), here("db","guess_hb.sqlite"))
+Base_Materiales_UPC <- dbReadTable(SQLite.Guess_HB, "Materiales.UPC") %>% 
+  rename(Material = "numero_material", UPC = "codigo_upc")
 dbDisconnect(SQLite.Guess_HB)
 
 #Lista extra de UPC
-UPCs <- read_xlsx(path = "C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/UPC Faltantes/UPCs.xlsx")
+UPCs <- read_xlsx(path = global_config$upc_faltantes_excel)
 Base_Materiales_UPC <- Base_Materiales_UPC %>% bind_rows(UPCs) #No necesita distinct, en bolsas existe 1 material = 1 UPC
 
-
 # Excel archivo Macro ----
-excel_macro <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Espacio/Excel Image in path/Excel_Place_Local_Pictures_In_Cell_Using_Formula_Hack_2607.xlsm"
+excel_macro <- global_config$excel_picture.in.cel
 
 # Filtros para  Lista de Precios ----
 
 # Departamento HB en Lista de precios
+# ___________________ # Cambiar por Global Config
 departamento_hb_main <-"Handbags"
 departamento_hb_factory <- "Handbags Factory"
+# __________________________
 
 precios <- lista_precios %>%
   select(c("Material",
@@ -70,8 +75,9 @@ precios <- lista_precios %>%
            "Clase",
            "Sub.Clase",
            "Precio.IB.minorista"))
-
-precios_HB <- filter(precios, Departamento %in% c(departamento_hb_main, departamento_hb_factory)) #Only HB materials
+# ________________ # Cambiar por lista de precios previamente seleccionada de solo HB
+precios_HB <- filter(precios, Departamento %in% global_config$departamento_bolsas) #Only HB materials
+# ________________
 
 # ---- Cargar archivo excel - Signal Materiales ----
 Signal_Handbags <- inventario_signal.materiales
@@ -109,13 +115,14 @@ presentes_temp <- lista_minis_all %>% group_by(Departamento,Temporada) %>% summa
 año <- año_procesar #Seleccionar año para crear caratulas
 
 # Parámetros Carpetas ----
+#To-Do 2:
 #Carpetas objetivo, para guardar en onedrive _in order to copy to better path_
-dir_minis_year <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Minis/"
+dir_minis_year <- global_config$directorio_minis
 
 carpeta_destino <- paste0(dir_minis_year,año)
 
 #Better Path for alt text in cell
-dir_better_path <- "C:/HandBags/"
+dir_better_path <- global_config$directorio_minis_minimo
 
 mini_better_path <- paste0(dir_better_path,año)
 
@@ -241,7 +248,7 @@ lista_tablas <- setNames(
 # Escribir formato proforma
 fecha_reporte <- format(as.Date(Sys.Date(), format = "%Y-%m-%d"), "%d.%m.%y")
 
-carpeta_proforma <- paste0("C:/Users/ecastellanos.ext/OneDrive - Axo/HandBags/Proformas/", año,"/")
+carpeta_proforma <- paste0(global_config$directorio_proformas, año,"/")
 
 proforma_file <- paste0(año, " Bolsas Celdas Proforma ", fecha_reporte,".xlsx")
 
@@ -265,12 +272,12 @@ files <- c(general_list, proforma_file, excel_macro)
 # Escribir SQLite ----
 tabla <- paste0("Proforma_",año_procesar)
 tabla_faltantes <- paste0("Materiales.Faltantes_",año_procesar)
-SQLite.Proformas <- dbConnect(SQLite(), "db/proforma_anuales.sqlite")
+SQLite.Proformas <- dbConnect(SQLite(), here("db","proforma_anuales.sqlite"))
 dbWriteTable(SQLite.Proformas, tabla, proforma, overwrite = TRUE) # Formato proforma
 dbWriteTable(SQLite.Proformas, tabla_faltantes, Materiales_no_picture, overwrite = TRUE) # Lista Materiales Faltantes
 
 # Escribir tabla de UPC en SQLite guess_hb
-SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
+SQLite.Guess_HB <- dbConnect(SQLite(), here("db","guess_hb.sqlite"))
 
 dbWriteTable(SQLite.Guess_HB, paste0("Materiales.UPC.",año), Base_Materiales_UPC, overwrite = TRUE)
 dbWriteTable(SQLite.Guess_HB, paste0("Materiales.Faltantes.",año), Materiales_no_picture, overwrite = TRUE)

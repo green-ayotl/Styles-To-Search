@@ -1,23 +1,27 @@
 # Preface ----
 
-library(tidyverse)
-library(data.table)
-library(tools)
-library(DBI)
-library(RSQLite)
-
-#Listado de archivos de la colección desde signal en todos los departamentos
+#Listado de archivos de las colecciones desde signal en todos los departamentos
   #Guarda en su correspondiente SQLite, la lista ampliada de archivos
     #Para su utilización en flujos consecutivos de trabajo
   #Al final: Limpia los elementos del ambiente global
 #Aislamiento de procesos: acId
 
+# Librerias -----
+library(tidyverse)
+library(data.table)
+library(tools)
+library(DBI)
+library(RSQLite)
+library(here)
+
+# Parámetros Globales ----
+source(here("Global.R"))
+
 # Origen Carpeta Signal en ShareFile ----
-sharefile_drive = "S:/Carpetas/" # Carpeta default para programa escritorio de sharefile
+sharefile_drive # Carpeta default para programa escritorio de sharefile # Cargado desde configuración global
 
 # Listado de departamentos
-departamentos_guess_signal <- data.frame(Departamento = c(
-  "Mainline", "Factory", "Mens"),
+departamentos_guess_signal <- data.frame(Departamento = c("Mainline", "Factory", "Mens"),
   Directorio = c("GUESS MAINLINE ECOM IMAGES", "SPECIAL MARKETS ECOM", "GUESS MENS ECOM"))
 
 # Tabla vacia para agregar la lista de archivos
@@ -40,14 +44,6 @@ files_signal_guess <- mutate(files_signal_guess, File_Name = file_path_sans_ext(
   mutate(File_Ext = file_ext(str_extract(files_signal_guess$Full_Path, "[^/]*$")))
 
 # SQLite ----
-Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite") # db para lista de archivos
+Files.HB_Guess <- dbConnect(SQLite(), here("db","file_list.sqlite")) # db para lista de archivos
 dbWriteTable(Files.HB_Guess, "Signal", files_signal_guess, overwrite = TRUE)
 dbDisconnect(Files.HB_Guess)
-
-# Limpiar ambiente
-#rm(departamentos_guess_signal,
-#   files_signal_guess,
-#   Files.HB_Guess,
-#   comienzo,
-#   i,
-#   sharefile_drive)

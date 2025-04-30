@@ -5,19 +5,23 @@ library(tidyverse)
 library(DBI)
 library(RSQLite)
 library(stringr)
+library(here)
 
 # Cargar información ----
 
-# Base de Materiales
+# Global config -
+source(here("Global.R"))
+
+# Base de Materiales - Actualización de información
 rstudioapi::jobRunScript(
-  path = "Flujos Comercial/latest_base_materiales.R",
+  path = here("Informacion_Comercial","Flujos Comercial","latest_base_materiales.R"),
   name = "Actualización de Base de Materiales",
   workingDir = getwd()
 )
 
-# Lista de materiales 
+# Lista de materiales - Actualización de información
 rstudioapi::jobRunScript(
-  path = "Flujos Comercial/latest_lista_precios.R",
+  path = here("Flujos Comercial","Informacion_Comercial","latest_lista_precios.R"),
   name = "Actualización de Lista de Precios",
   workingDir = getwd()
 )
@@ -25,7 +29,7 @@ rstudioapi::jobRunScript(
 #Conectar con db
 SQLite.Guess_HB <- dbConnect(SQLite(), "db/guess_hb.sqlite")
 
-departamento_bolsas <- c("Handbags", "Handbags Factory")
+departamento_bolsas <- global_config$departamento_bolsas
 
 lista.precios <- dbReadTable(SQLite.Guess_HB, "Lista.Precios") %>% 
   filter(Departamento %in% departamento_bolsas) %>% 
@@ -48,3 +52,4 @@ Colores_To_Search <- left_join(lista.precios, base.materiales, by = "Material", 
   mutate(Igualdad_Codigo.Color = Color_Code == CODIGO_COLOR_PROVEEDOR) %>% 
   filter(Igualdad_Codigo.Color == TRUE)
 
+# Export ----

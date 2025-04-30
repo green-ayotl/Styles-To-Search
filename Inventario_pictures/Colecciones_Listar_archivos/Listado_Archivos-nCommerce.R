@@ -6,19 +6,20 @@ library(tools)
 library(RSQLite)
 library(stringr)
 
+# Global config ----
+source(here("Global.R"))
 
-# Parametros globales ----
-extensiones_imagenes <- c("jpg","JPG","tif","tiff","png","jpeg")
+# Parámetros globales ----
+extensiones_imagenes <- global_config$archivo_imagen
 
 # Dirección carpetas ----
 
-nCommerce_dir <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/nCommerce_Handbags/"
+nCommerce_dir <- global_config$nCommerce_dir # Cargado desde configuración global
 
-commerce_general_dir <- "C:/Users/ecastellanos.ext/OneDrive - Axo/Imágenes/Commerce_General/"
+commerce_general_dir <- global_config$commerce_general_dir # Cargado desde configuración global
 
 # Ordenamiento de fuentes
-lista_coleccion_alt_guess <- data.frame(Album = c(
-  "nCommerce", "commerce_general"),
+lista_coleccion_alt_guess <- data.frame(Album = c("nCommerce", "commerce_general"),
   Directorio = c(nCommerce_dir, commerce_general_dir))
 
 files_guess_alt <- data.frame(Full_Path = as.character(),
@@ -58,8 +59,6 @@ guess_alt_materiales$Variante[is.na(guess_alt_materiales$Variante)] <- "F"
 
 #Elegir fotos siguientes como variantes del material
 
-
-
 # Seleccionar informacion para guardar en db
 
 guess_alt_materiales <- guess_alt_materiales %>% 
@@ -76,11 +75,11 @@ guess_alt_materiales <- guess_alt_materiales %>%
 
 
 # SQLite ----
-Files.HB_Guess <- dbConnect(SQLite(), "db/file_list.sqlite") # db para lista de archivos
+Files.HB_Guess <- dbConnect(SQLite(), here("db","file_list.sqlite")) # db para lista de archivos
 dbWriteTable(Files.HB_Guess, "Inventario.Alt.Files", files_guess_alt, overwrite = TRUE)
 dbDisconnect(Files.HB_Guess)
 
-SQLite.Guess_Materiales <- dbConnect(SQLite(), "db/guess_hb_materiales.sqlite") #Solo para lista de materiales disponibles
+SQLite.Guess_Materiales <- dbConnect(SQLite(), here("db","guess_hb_materiales.sqlite")) #Solo para lista de materiales disponibles
 dbWriteTable(SQLite.Guess_Materiales,"nCommerce.Materiales", guess_alt_materiales, overwrite = TRUE)
 dbDisconnect(SQLite.Guess_Materiales)
 
