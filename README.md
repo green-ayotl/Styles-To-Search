@@ -1,5 +1,7 @@
 ## Styles To Search
 - Proyecto para mejorar los procesos de información en el área comercial de AXO GUESS.
+## Esquema de proyecto
+- ![Alt Text](https://github.com/green-ayotl/Styles-To-Search/blob/main/Media/Styles_to_Search_esquema_proyecto.png)
 ## Flujos de trabajo para el área comercial
 ### Inventario de Materiales
 - Identificación de Materiales en distintas fuentes de información multimedia, para cubrir en menor tiempo posible la alimentación multimedia de los clientes WholeSale.
